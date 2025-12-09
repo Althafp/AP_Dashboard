@@ -1,0 +1,66 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Build outputs
+build
+*.tsbuildinfo
+
+# Test coverage
+coverage
+
+# Temporary files
+*.tmp
+*.temp
+*.json.bak
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Data files (keep structure but ignore large data)
+*.xlsx
+*.geojson
+!public/*.xlsx
+!public/*.geojson
+!public/*.svg
+!public/*.png
+!public/*.json
+
+# Large JSON files
+filtered_*.json
+status_summary.json
+poll_info.json
