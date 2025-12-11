@@ -1,0 +1,26 @@
+steps:
+  # Build the React app
+  - name: 'node:18-alpine'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        npm ci
+        npm run build
+
+  # Build Docker image with nginx
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.nginx'
+      - '-t'
+      - 'gcr.io/focus-cumulus-477711-g5/ap-dashboard:nginx'
+      - '-t'
+      - 'gcr.io/focus-cumulus-477711-g5/ap-dashboard:latest'
+      - '.'
+
+images:
+  - 'gcr.io/focus-cumulus-477711-g5/ap-dashboard:nginx'
+  - 'gcr.io/focus-cumulus-477711-g5/ap-dashboard:latest'
+
