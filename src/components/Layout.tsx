@@ -29,7 +29,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/', icon: LayoutDashboard, label: 'Main Dashboard' },
     { path: '/map', icon: MapPin, label: 'Map' },
     { path: '/overview', icon: LayoutDashboard, label: 'Overview' },
-    { path: '/monitors', icon: Monitor, label: 'Monitors' },
+    { path: '/monitors', icon: Monitor, label: 'IP devices' },
     { path: '/performance', icon: LineChart, label: 'Performance' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/alerts', icon: Bell, label: 'Alerts' },
@@ -41,36 +41,36 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <img 
-                  src="/ap-logo.svg" 
-                  alt="Andhra Pradesh Logo" 
-                  className="h-10 w-auto"
-                />
-              </div>
+            {/* CM Images and Logo - arranged with logo in center, on the left */}
+            <div className="flex items-center space-x-3">
+              {/* First CM Image */}
+              <img 
+                src="/cm.png" 
+                alt="CM Son" 
+                className="h-12 w-auto object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              {/* Logo in center */}
+              <img 
+                src="/ap-logo.svg" 
+                alt="Andhra Pradesh Logo" 
+                className="h-10 w-auto"
+              />
+              {/* Second CM Image */}
+              <img 
+                src="/cmson.png" 
+                alt="CM" 
+                className="h-12 w-auto object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
             </div>
-            <div className="flex items-center space-x-4">
-              {/* CM Images */}
-              <div className="flex items-center space-x-2">
-                <img 
-                  src="/cmson.png" 
-                  alt="CM Son" 
-                  className="h-12 w-auto object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-                <img 
-                  src="/cm.png" 
-                  alt="CM" 
-                  className="h-12 w-auto object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
-              
+            
+            {/* Logout button on the right */}
+            <div className="flex items-center">
               <button
                 onClick={handleLogout}
                 className="flex items-center text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"

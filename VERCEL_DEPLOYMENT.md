@@ -82,10 +82,42 @@ Browser → https://your-app.vercel.app/api/query/objects
 
 ### Issue: Still getting 404 errors
 
-**Check:**
-1. Did you remove `VITE_API_BASE_URL` from Vercel environment variables?
-2. Did the deployment complete successfully?
-3. Check Vercel function logs: **Deployments** → **Functions** → **api/[...path]**
+**This means Vercel isn't recognizing the serverless function. Check:**
+
+1. **Verify the function file exists:**
+   - File should be at: `api/[...path].js` (in the root directory)
+   - Not in `src/api/` or any subdirectory
+
+2. **Check Vercel deployment logs:**
+   - Go to Vercel Dashboard → Your Project → **Deployments**
+   - Click on the latest deployment
+   - Check **Functions** tab - you should see `api/[...path]` listed
+   - If it's not there, the function file isn't being recognized
+
+3. **Test the function directly:**
+   - Try accessing: `https://your-app.vercel.app/api/test`
+   - This should return a JSON response if functions are working
+   - If this also returns 404, Vercel isn't recognizing the `api/` folder
+
+4. **Verify file structure:**
+   ```
+   your-project/
+   ├── api/
+   │   ├── [...path].js  ← This file must exist
+   │   └── test.js       ← Test endpoint
+   ├── src/
+   ├── vercel.json
+   └── package.json
+   ```
+
+5. **Redeploy after adding the function:**
+   - The function must be committed to git
+   - Push to your repository
+   - Vercel will auto-deploy, or manually trigger deployment
+
+6. **Check Vercel build logs:**
+   - Look for any errors about the `api/` folder
+   - Make sure the function file is included in the deployment
 
 ### Issue: Still getting SSL errors
 

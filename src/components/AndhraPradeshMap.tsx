@@ -9,7 +9,30 @@ interface DistrictInfo {
   feature: any;
 }
 
-type DeviceType = 'Cameras' | 'Servers' | 'APIs' | 'GPUs';
+type DeviceType = 'Cameras' | 'Servers' | 'APIs' | 'GPUs' | 'UPS';
+
+// UPS District Code Mapping
+const UPS_DISTRICT_CODES: Record<string, string> = {
+  'KNL': 'KURNOOL',
+  'CTR': 'CHITTOOR',
+  'EGD': 'EAST GODAVARI',
+  'EAST': 'EAST GODAVARI',
+  'VSKP': 'VISAKHAPATNAM',
+  'WDG': 'WEST GODAVARI',
+  'PRK': 'PRAKASAM',
+  'VZM': 'VIZIANAGARAM',
+  'KRI': 'KRISHNA',
+  'ATP': 'ANANTAPUR',
+  'SRK': 'SRIKAKULAM',
+  'NLR': 'NELLORE',
+  'KDP': 'KADAPA'
+};
+
+// Helper function to get district name from UPS code
+const getDistrictFromUPSCode = (code: string): string | null => {
+  const upperCode = code.toUpperCase();
+  return UPS_DISTRICT_CODES[upperCode] || null;
+};
 
 declare global {
   interface Window {
@@ -30,6 +53,13 @@ export const AndhraPradeshMap: React.FC = () => {
   const [showDownList, setShowDownList] = useState(false);
   const [downDevicesList, setDownDevicesList] = useState<any[]>([]);
   const [loadingDownList, setLoadingDownList] = useState(false);
+  const [deviceTypeCounts, setDeviceTypeCounts] = useState<Record<DeviceType, number>>({
+    Cameras: 0,
+    Servers: 0,
+    APIs: 0,
+    GPUs: 0,
+    UPS: 0
+  });
   const mapInstanceRef = useRef<any>(null);
   const dataLayerRef = useRef<any>(null);
   const districtsRef = useRef<Map<string, DistrictInfo>>(new Map());
@@ -38,7 +68,62 @@ export const AndhraPradeshMap: React.FC = () => {
   // Load Excel file on mount
   useEffect(() => {
     loadExcelData();
+    loadDeviceTypeCounts();
   }, []);
+
+  // Load device type counts for dropdown
+  const loadDeviceTypeCounts = async () => {
+    try {
+      // Fetch all monitors to count by type
+      const [upResponse, downResponse] = await Promise.all([
+        apiService.getApi().get('/query/objects/status?status=Up'),
+        apiService.getApi().get('/query/objects/status?status=Down'),
+      ]);
+
+      const upMonitors = upResponse.data.result || upResponse.data || [];
+      const downMonitors = downResponse.data.result || downResponse.data || [];
+      const allMonitors = [...upMonitors, ...downMonitors];
+
+      // Count each device type
+      const counts: Record<DeviceType, number> = {
+        Cameras: 0,
+        Servers: 0,
+        APIs: 0,
+        GPUs: 0,
+        UPS: 0
+      };
+
+      allMonitors.forEach((monitor: any) => {
+        const name = (monitor['object.name'] || '').toLowerCase();
+        const host = (monitor['object.host'] || '').toLowerCase();
+
+        // Cameras
+        if (name.includes('cam')) {
+          counts.Cameras++;
+        }
+        // Servers
+        if (name.includes('server') && !name.includes('cam')) {
+          counts.Servers++;
+        }
+        // APIs
+        if (name.includes('_api/')) {
+          counts.APIs++;
+        }
+        // GPUs
+        if (name.includes('gpu') || host.includes('gpu')) {
+          counts.GPUs++;
+        }
+        // UPS
+        if (name.includes('_ups')) {
+          counts.UPS++;
+        }
+      });
+
+      setDeviceTypeCounts(counts);
+    } catch (error) {
+      console.error('Error loading device type counts:', error);
+    }
+  };
 
   // Load device stats when district or device type changes, or on mount
   useEffect(() => {
@@ -149,6 +234,68 @@ export const AndhraPradeshMap: React.FC = () => {
     return parts.length > 0 ? parts.join(' ') : 'Just now';
   };
 
+  // Format duration between two timestamps (timestamp - lastTriggered)
+  const formatDurationBetween = (timestamp: number, lastTriggered: number): string => {
+    // Normalize timestamps to seconds
+    // If values are > 1e12, they're in milliseconds, convert to seconds
+    let tsSeconds = timestamp;
+    let ltSeconds = lastTriggered;
+    
+    if (Math.abs(timestamp) > 1e12) {
+      tsSeconds = timestamp / 1000;
+    }
+    if (Math.abs(lastTriggered) > 1e12) {
+      ltSeconds = lastTriggered / 1000;
+    }
+    
+    // timestamp is older (long ago), lastTriggered is recent
+    // Calculate difference: lastTriggered - timestamp (recent - old = positive duration)
+    let durationSeconds = ltSeconds - tsSeconds;
+    
+    // If result is negative, try swapping (maybe timestamp is actually recent)
+    if (durationSeconds < 0) {
+      durationSeconds = Math.abs(durationSeconds);
+      // If still huge, might be wrong values - use absolute difference
+      if (durationSeconds > 86400 * 365 * 10) { // More than 10 years seems wrong
+        console.warn('Suspicious duration calculation:', { timestamp, lastTriggered, durationSeconds });
+        // Fall back to showing time since timestamp
+        return formatDuration(tsSeconds);
+      }
+    }
+    
+    durationSeconds = Math.abs(durationSeconds);
+    
+    // Cap at reasonable maximum (e.g., 1 year)
+    if (durationSeconds > 86400 * 365) {
+      return 'More than 1 year';
+    }
+    
+    if (durationSeconds < 60) {
+      return `${Math.floor(durationSeconds)} second${Math.floor(durationSeconds) !== 1 ? 's' : ''}`;
+    }
+    
+    const days = Math.floor(durationSeconds / 86400);
+    const hours = Math.floor((durationSeconds % 86400) / 3600);
+    const minutes = Math.floor((durationSeconds % 3600) / 60);
+    const seconds = Math.floor(durationSeconds % 60);
+    
+    const parts: string[] = [];
+    if (days > 0) {
+      parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+    }
+    if (hours > 0) {
+      parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+    }
+    if (minutes > 0) {
+      parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+    }
+    if (seconds > 0 && days === 0 && hours === 0) {
+      parts.push(`${seconds} second${seconds !== 1 ? 's' : ''}`);
+    }
+    
+    return parts.length > 0 ? parts.join(' ') : 'Just now';
+  };
+
   const loadDownDevicesList = async () => {
     setLoadingDownList(true);
     setShowDownList(true);
@@ -240,6 +387,30 @@ export const AndhraPradeshMap: React.FC = () => {
                        upperDistrictName.startsWith(gpuDistrictName) ||
                        gpuDistrictName.startsWith(upperDistrictName.split(' ')[0]);
               }
+            } else if (selectedDeviceType === 'UPS') {
+              if (name.includes('_ups')) {
+                // Extract district code from object.name (part before "_UPS")
+                const upperName = (monitor['object.name'] || '').toUpperCase();
+                const upsParts = upperName.split('_UPS');
+                if (upsParts.length > 0) {
+                  const upsCode = upsParts[0].trim();
+                  // Get full district name from code
+                  const upsDistrictName = getDistrictFromUPSCode(upsCode);
+                  const upperDistrictName = excelDistrictName.toUpperCase();
+                  
+                  // Check if UPS district matches selected district
+                  if (upsDistrictName) {
+                    // Match using full district name from code
+                    return upsDistrictName === upperDistrictName || 
+                           upperDistrictName.startsWith(upsDistrictName) ||
+                           upsDistrictName.startsWith(upperDistrictName.split(' ')[0]);
+                  } else {
+                    // If code not found in mapping, try direct code match
+                    const normalizedDistrict = upperDistrictName.replace(/\s+/g, '');
+                    return upsCode === normalizedDistrict || normalizedDistrict.startsWith(upsCode);
+                  }
+                }
+              }
             }
             return false;
           });
@@ -255,6 +426,8 @@ export const AndhraPradeshMap: React.FC = () => {
               return name.includes('_api/');
             } else if (selectedDeviceType === 'GPUs') {
               return name.includes('gpu') || host.includes('gpu');
+            } else if (selectedDeviceType === 'UPS') {
+              return name.includes('_ups');
             }
             return false;
           });
@@ -365,6 +538,41 @@ export const AndhraPradeshMap: React.FC = () => {
             matches = true;
           }
         }
+      } else if (deviceType === 'UPS') {
+        // UPS: name contains "_UPS", format is {CODE}_UPS_{...}
+        // Example: KNL_UPS_VARTHA_NANDYAL_CHECKPOST
+        if (name.includes('_ups')) {
+          if (districtName) {
+            // Extract district code from object.name (part before "_UPS")
+            const upperName = (monitor['object.name'] || '').toUpperCase();
+            const upsParts = upperName.split('_UPS');
+            if (upsParts.length > 0) {
+              const upsCode = upsParts[0].trim();
+              // Get full district name from code
+              const upsDistrictName = getDistrictFromUPSCode(upsCode);
+              const upperDistrictName = districtName.toUpperCase();
+              
+              // Check if UPS district matches selected district
+              if (upsDistrictName) {
+                // Match using full district name from code
+                if (upsDistrictName === upperDistrictName || 
+                    upperDistrictName.startsWith(upsDistrictName) ||
+                    upsDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+                  matches = true;
+                }
+              } else {
+                // If code not found in mapping, try direct code match
+                const normalizedDistrict = upperDistrictName.replace(/\s+/g, '');
+                if (upsCode === normalizedDistrict || normalizedDistrict.startsWith(upsCode)) {
+                  matches = true;
+                }
+              }
+            }
+          } else {
+            // Whole state: just check for "_ups" keyword
+            matches = true;
+          }
+        }
       }
 
       if (matches) {
@@ -454,6 +662,41 @@ export const AndhraPradeshMap: React.FC = () => {
             }
           } else {
             // Whole state: just check for "gpu" keyword
+            matches = true;
+          }
+        }
+      } else if (deviceType === 'UPS') {
+        // UPS: name contains "_UPS", format is {CODE}_UPS_{...}
+        // Example: KNL_UPS_VARTHA_NANDYAL_CHECKPOST
+        if (name.includes('_ups')) {
+          if (districtName) {
+            // Extract district code from object.name (part before "_UPS")
+            const upperName = (monitor['object.name'] || '').toUpperCase();
+            const upsParts = upperName.split('_UPS');
+            if (upsParts.length > 0) {
+              const upsCode = upsParts[0].trim();
+              // Get full district name from code
+              const upsDistrictName = getDistrictFromUPSCode(upsCode);
+              const upperDistrictName = districtName.toUpperCase();
+              
+              // Check if UPS district matches selected district
+              if (upsDistrictName) {
+                // Match using full district name from code
+                if (upsDistrictName === upperDistrictName || 
+                    upperDistrictName.startsWith(upsDistrictName) ||
+                    upsDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+                  matches = true;
+                }
+              } else {
+                // If code not found in mapping, try direct code match
+                const normalizedDistrict = upperDistrictName.replace(/\s+/g, '');
+                if (upsCode === normalizedDistrict || normalizedDistrict.startsWith(upsCode)) {
+                  matches = true;
+                }
+              }
+            }
+          } else {
+            // Whole state: just check for "_ups" keyword
             matches = true;
           }
         }
@@ -1014,9 +1257,9 @@ export const AndhraPradeshMap: React.FC = () => {
                   }, 16);
                 }
               }}
-              className="ml-2 text-xs underline hover:text-purple-900"
+              className="ml-2 px-2 py-1 bg-purple-600 text-white text-xs font-semibold rounded-md hover:bg-purple-700 transition-colors shadow-sm"
             >
-              Reset View
+              State View
             </button>
           </div>
         )}
@@ -1117,10 +1360,11 @@ export const AndhraPradeshMap: React.FC = () => {
                   onChange={(e) => setSelectedDeviceType(e.target.value as DeviceType)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="Cameras">Cameras</option>
-                  <option value="Servers">Servers</option>
-                  <option value="APIs">APIs</option>
-                  <option value="GPUs">GPUs</option>
+                  <option value="Cameras">Cameras ({deviceTypeCounts.Cameras})</option>
+                  <option value="Servers">Servers ({deviceTypeCounts.Servers})</option>
+                  <option value="APIs">APIs ({deviceTypeCounts.APIs})</option>
+                  <option value="GPUs">GPUs ({deviceTypeCounts.GPUs})</option>
+                  <option value="UPS">UPS ({deviceTypeCounts.UPS})</option>
                 </select>
               </div>
 
@@ -1250,8 +1494,70 @@ export const AndhraPradeshMap: React.FC = () => {
                     // Get monitor name from visualization API format or regular format
                     const monitorName = device.monitor || device['object.name'] || device.name || 'Unknown Device';
                     const monitorIP = device['object.ip'] || '';
-                    const eventTimestamp = device['event.timestamp'] || device.eventTimestamp;
-                    const downDuration = eventTimestamp ? formatDuration(eventTimestamp) : null;
+                    
+                    // Get timestamp - API returns in milliseconds (1765460363000)
+                    const timestamp = device.timestamp || device['object.timestamp'] || device['event.timestamp'] || device.eventTimestamp;
+                    
+                    // Get last triggered - check all possible field names from API response
+                    // Look for fields that might contain "trigger", "poll", "update", "modify", "change"
+                    const lastTriggered = device.lastTriggered || 
+                                         device['last.triggered'] || 
+                                         device['object.last.triggered'] || 
+                                         device['event.last.triggered'] || 
+                                         device['object.last.poll.time'] || 
+                                         device['last.poll.time'] || 
+                                         device['lastTriggered'] || 
+                                         device['lastTriggeredTime'] ||
+                                         device['lastPollTime'] ||
+                                         device['object.lastPollTime'] ||
+                                         device['lastUpdateTime'] ||
+                                         device['object.lastUpdateTime'] ||
+                                         device['modification.time'] ||
+                                         device['object.modification.time'];
+                    
+                    // Debug: log the values to understand the data structure (only first device)
+                    if (index === 0) {
+                      console.log('Device sample:', {
+                        timestamp,
+                        lastTriggered,
+                        allKeys: Object.keys(device),
+                        device: device
+                      });
+                    }
+                    
+                    // Calculate duration
+                    let downDuration = null;
+                    if (timestamp) {
+                      // Convert timestamp from milliseconds to seconds
+                      // timestamp is in milliseconds (e.g., 1765460363000)
+                      const timestampSeconds = Math.floor(timestamp / 1000);
+                      
+                      if (lastTriggered && typeof lastTriggered === 'number') {
+                        // Both values exist - calculate difference: timestamp (old) - lastTriggered (recent)
+                        // Convert lastTriggered from milliseconds to seconds if needed
+                        const lastTriggeredSeconds = lastTriggered > 1e12 
+                          ? Math.floor(lastTriggered / 1000) 
+                          : lastTriggered;
+                        
+                        // timestamp is older, lastTriggered is recent
+                        // Difference: lastTriggered - timestamp (recent - old = positive)
+                        downDuration = formatDurationBetween(timestampSeconds, lastTriggeredSeconds);
+                      } else {
+                        // Only timestamp exists - show time since timestamp
+                        // But if timestamp is in the future, don't show negative duration
+                        const currentTime = Math.floor(Date.now() / 1000);
+                        const diff = currentTime - timestampSeconds;
+                        
+                        if (diff < 0) {
+                          // Timestamp is in the future - this might be a creation timestamp, not down time
+                          // Don't show duration or show "N/A"
+                          downDuration = null;
+                        } else {
+                          // Normal case - show time since timestamp
+                          downDuration = formatDuration(timestampSeconds);
+                        }
+                      }
+                    }
                     
                     return (
                       <div
@@ -1282,9 +1588,9 @@ export const AndhraPradeshMap: React.FC = () => {
                             <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded mb-2">
                               Down
                             </span>
-                            {eventTimestamp && (
+                            {timestamp && (
                               <span className="text-xs text-gray-500">
-                                {new Date(eventTimestamp * 1000).toLocaleString()}
+                                {new Date(timestamp * 1000).toLocaleString()}
                               </span>
                             )}
                           </div>

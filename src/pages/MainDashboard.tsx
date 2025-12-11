@@ -177,9 +177,9 @@ export const MainDashboard: React.FC = () => {
       </div>
 
       {/* Category Cards - Compact */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {stats.map((category, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div key={index} className="bg-white rounded-lg shadow-md border-2 border-gray-300 p-5">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
@@ -248,32 +248,6 @@ export const MainDashboard: React.FC = () => {
                     <p className="text-xs">No data</p>
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Progress Bar - Compact */}
-            <div className="mt-3">
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                {category.total > 0 && (
-                  <>
-                    <div 
-                      className="bg-emerald-500 h-2 float-left transition-all duration-300"
-                      style={{ width: `${(category.up / category.total) * 100}%` }}
-                    />
-                    <div 
-                      className="bg-rose-500 h-2 float-left transition-all duration-300"
-                      style={{ width: `${(category.down / category.total) * 100}%` }}
-                    />
-                  </>
-                )}
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-xs text-gray-500">
-                  <span className="text-emerald-600 font-medium">{category.up}</span> Up
-                </span>
-                <span className="text-xs text-gray-500">
-                  <span className="text-rose-600 font-medium">{category.down}</span> Down
-                </span>
               </div>
             </div>
           </div>
