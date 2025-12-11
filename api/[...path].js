@@ -5,6 +5,14 @@ const API_TARGET = 'https://223.196.186.236';
 const API_BASE_PATH = '/api/v1';
 
 export default async function handler(req, res) {
+  // Debug logging
+  console.log('Proxy function called:', {
+    method: req.method,
+    url: req.url,
+    query: req.query,
+    headers: Object.keys(req.headers)
+  });
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,17 +22,29 @@ export default async function handler(req, res) {
   }
 
   // Get the path from the request
-  const path = req.query.path || [];
-  const apiPath = Array.isArray(path) ? path.join('/') : path;
+  // Vercel passes the path segments as an array in req.query.path
+  const pathSegments = req.query.path || [];
+  const apiPath = Array.isArray(pathSegments) ? pathSegments.join('/') : pathSegments;
   
-  // Get query parameters (excluding 'path')
+  console.log('Path segments:', pathSegments, 'API path:', apiPath);
+  
+  // Get all query parameters (excluding 'path' which is the route parameter)
   const queryParams = { ...req.query };
   delete queryParams.path;
-  const queryString = new URLSearchParams(queryParams).toString();
+  
+  // Build query string from remaining params
+  const queryString = Object.keys(queryParams).length > 0 
+    ? '?' + new URLSearchParams(queryParams).toString()
+    : '';
   
   // Construct the full path
+  // Example: /api/query/objects/status?status=Up
+  // apiPath = "query/objects/status"
+  // targetPath = "/api/v1/query/objects/status"
   const targetPath = apiPath ? `${API_BASE_PATH}/${apiPath}` : API_BASE_PATH;
-  const fullPath = queryString ? `${targetPath}?${queryString}` : targetPath;
+  const fullPath = targetPath + queryString;
+  
+  console.log('Full target path:', fullPath);
   
   // Parse the target URL
   const url = new URL(API_TARGET);
@@ -83,8 +103,22 @@ export default async function handler(req, res) {
     
     proxyReq.on('error', (error) => {
       console.error('Proxy error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        hostname: url.hostname,
+        path: fullPath
+      });
       if (!res.headersSent) {
-        res.status(500).json({ error: 'Proxy error', message: error.message });
+        res.status(500).json({ 
+          error: 'Proxy error', 
+          message: error.message,
+          details: {
+            target: API_TARGET,
+            path: fullPath,
+            code: error.code
+          }
+        });
       }
       reject(error);
     });
