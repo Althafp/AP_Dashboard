@@ -8,7 +8,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://172.30.113.15',
+        target: 'https://223.196.186.236',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
         rewrite: (path) => path.replace(/^\/api/, '/api/v1'),

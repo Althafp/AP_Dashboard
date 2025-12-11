@@ -27,6 +27,9 @@ export const AndhraPradeshMap: React.FC = () => {
   const [districtCameraMap, setDistrictCameraMap] = useState<DistrictCameraMap>({});
   const [deviceStats, setDeviceStats] = useState<{ up: number; down: number } | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [showDownList, setShowDownList] = useState(false);
+  const [downDevicesList, setDownDevicesList] = useState<any[]>([]);
+  const [loadingDownList, setLoadingDownList] = useState(false);
   const mapInstanceRef = useRef<any>(null);
   const dataLayerRef = useRef<any>(null);
   const districtsRef = useRef<Map<string, DistrictInfo>>(new Map());
@@ -75,7 +78,7 @@ export const AndhraPradeshMap: React.FC = () => {
       const downMonitors = downResponse.data.result || downResponse.data || [];
 
       // Count devices by type for whole state (same logic as MainDashboard)
-      const stats = countDevicesByType(upMonitors, downMonitors, selectedDeviceType, null);
+      const stats = countDevicesByType(upMonitors, downMonitors, selectedDeviceType, null, null);
       
       console.log(`Whole State ${selectedDeviceType} Stats:`, stats);
       setDeviceStats(stats);
@@ -106,7 +109,8 @@ export const AndhraPradeshMap: React.FC = () => {
       const downMonitors = downResponse.data.result || downResponse.data || [];
 
       // Count devices by type for this district
-      const stats = countDevicesByType(upMonitors, downMonitors, deviceType, cameraIPs);
+      // Pass district name for server filtering, cameraIPs for camera filtering
+      const stats = countDevicesByType(upMonitors, downMonitors, deviceType, cameraIPs, excelDistrictName);
       
       console.log(`District ${district} ${deviceType} Stats:`, stats);
       setDeviceStats(stats);
@@ -118,62 +122,345 @@ export const AndhraPradeshMap: React.FC = () => {
     }
   };
 
+  // Format duration in human-readable format
+  const formatDuration = (eventTimestamp: number): string => {
+    const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+    const durationSeconds = currentTime - eventTimestamp;
+    
+    if (durationSeconds < 60) {
+      return `${durationSeconds} second${durationSeconds !== 1 ? 's' : ''}`;
+    }
+    
+    const days = Math.floor(durationSeconds / 86400);
+    const hours = Math.floor((durationSeconds % 86400) / 3600);
+    const minutes = Math.floor((durationSeconds % 3600) / 60);
+    
+    const parts: string[] = [];
+    if (days > 0) {
+      parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+    }
+    if (hours > 0) {
+      parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+    }
+    if (minutes > 0 && days === 0) {
+      parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+    }
+    
+    return parts.length > 0 ? parts.join(' ') : 'Just now';
+  };
+
+  const loadDownDevicesList = async () => {
+    setLoadingDownList(true);
+    setShowDownList(true);
+    try {
+      let filteredDevices: any[] = [];
+
+      // Use visualization API for cameras (ID: 92323865253)
+      if (selectedDeviceType === 'Cameras') {
+        try {
+          const vizResponse = await apiService.getApi().get('/query/visualization/92323865253');
+          const vizData = vizResponse.data.result || vizResponse.data || [];
+          
+          // Filter by district if selected
+          if (selectedDistrict) {
+            const excelDistrictName = normalizeDistrictName(selectedDistrict);
+            const cameraIPs = districtCameraMap[excelDistrictName] || [];
+            
+            filteredDevices = vizData.filter((item: any) => {
+              const monitorIP = item['object.ip'] || '';
+              // Only include if IP matches district cameras
+              if (cameraIPs.length > 0) {
+                return cameraIPs.includes(monitorIP);
+              }
+              return true;
+            });
+          } else {
+            // Whole state - include all cameras
+            filteredDevices = vizData;
+          }
+        } catch (vizError) {
+          console.error('Error loading visualization data, falling back to status API:', vizError);
+          // Fallback to status API if visualization fails
+          const downResponse = await apiService.getApi().get('/query/objects/status?status=Down');
+          const downMonitors = downResponse.data.result || downResponse.data || [];
+          filteredDevices = downMonitors.filter((monitor: any) => {
+            const name = (monitor['object.name'] || '').toLowerCase();
+            
+            if (selectedDistrict) {
+              const excelDistrictName = normalizeDistrictName(selectedDistrict);
+              const cameraIPs = districtCameraMap[excelDistrictName] || [];
+              const monitorIP = monitor['object.ip'] || '';
+              if (name.includes('cam')) {
+                return cameraIPs.length > 0 ? cameraIPs.includes(monitorIP) : true;
+              }
+            } else {
+              return name.includes('cam');
+            }
+            return false;
+          });
+        }
+      } else {
+        // For other device types, use status API
+        const downResponse = await apiService.getApi().get('/query/objects/status?status=Down');
+        const downMonitors = downResponse.data.result || downResponse.data || [];
+
+        if (selectedDistrict) {
+          const excelDistrictName = normalizeDistrictName(selectedDistrict);
+
+          filteredDevices = downMonitors.filter((monitor: any) => {
+            const name = (monitor['object.name'] || '').toLowerCase();
+            const host = (monitor['object.host'] || '').toLowerCase();
+
+            if (selectedDeviceType === 'Servers') {
+              if (name.includes('server') && !name.includes('cam')) {
+                const upperName = (monitor['object.name'] || '').toUpperCase();
+                const upperDistrictName = excelDistrictName.toUpperCase();
+                const serverPrefix = upperName.split('_')[0];
+                return upperName.startsWith(upperDistrictName) || 
+                       upperDistrictName.startsWith(serverPrefix);
+              }
+            } else if (selectedDeviceType === 'APIs') {
+              if (name.includes('_api/')) {
+                const upperName = (monitor['object.name'] || '').toUpperCase();
+                const apiParts = upperName.split('_API/');
+                if (apiParts.length > 0) {
+                  const apiDistrictName = apiParts[0].trim();
+                  const upperDistrictName = excelDistrictName.toUpperCase();
+                  return apiDistrictName === upperDistrictName || 
+                         upperDistrictName.startsWith(apiDistrictName) ||
+                         apiDistrictName.startsWith(upperDistrictName.split(' ')[0]);
+                }
+              }
+            } else if (selectedDeviceType === 'GPUs') {
+              if (name.includes('gpu') || host.includes('gpu')) {
+                const upperName = (monitor['object.name'] || '').toUpperCase();
+                const gpuDistrictName = upperName.split(/[_-]/)[0].trim();
+                const upperDistrictName = excelDistrictName.toUpperCase();
+                return gpuDistrictName === upperDistrictName || 
+                       upperDistrictName.startsWith(gpuDistrictName) ||
+                       gpuDistrictName.startsWith(upperDistrictName.split(' ')[0]);
+              }
+            }
+            return false;
+          });
+        } else {
+          // Whole state - filter by device type only
+          filteredDevices = downMonitors.filter((monitor: any) => {
+            const name = (monitor['object.name'] || '').toLowerCase();
+            const host = (monitor['object.host'] || '').toLowerCase();
+
+            if (selectedDeviceType === 'Servers') {
+              return name.includes('server') && !name.includes('cam');
+            } else if (selectedDeviceType === 'APIs') {
+              return name.includes('_api/');
+            } else if (selectedDeviceType === 'GPUs') {
+              return name.includes('gpu') || host.includes('gpu');
+            }
+            return false;
+          });
+        }
+      }
+
+      setDownDevicesList(filteredDevices);
+    } catch (error) {
+      console.error('Error loading down devices list:', error);
+      setDownDevicesList([]);
+    } finally {
+      setLoadingDownList(false);
+    }
+  };
+
   const countDevicesByType = (
     upMonitors: any[], 
     downMonitors: any[], 
     deviceType: DeviceType,
-    districtIPs: string[] | null // null means whole state
+    districtIPs: string[] | null, // null means whole state (for cameras)
+    districtName: string | null = null // District name for server filtering (e.g., "EAST GODAVARI")
   ): { up: number; down: number } => {
     let upCount = 0;
     let downCount = 0;
 
-    // Determine keyword based on device type
-    const keyword = deviceType === 'Cameras' ? 'cam' :
-                   deviceType === 'Servers' ? 'server' :
-                   deviceType === 'APIs' ? 'api' :
-                   'gpu';
-
     // Count UP devices
     upMonitors.forEach((monitor: any) => {
       const name = (monitor['object.name'] || '').toLowerCase();
+      const host = (monitor['object.host'] || '').toLowerCase();
       const monitorIP = monitor['object.ip'] || '';
       
-      // For cameras, match by IP from Excel AND name contains keyword
-      // For other devices, just match by name (no Excel mapping available)
-      if (deviceType === 'Cameras' && districtIPs) {
-        if (districtIPs.includes(monitorIP) && name.includes(keyword)) {
-          upCount++;
+      let matches = false;
+
+      if (deviceType === 'Cameras') {
+        // Cameras: name contains "cam" AND (if district selected, IP must match)
+        if (name.includes('cam')) {
+          if (districtIPs) {
+            // District selected: must match IP from Excel
+            if (districtIPs.includes(monitorIP)) {
+              matches = true;
+            }
+          } else {
+            // Whole state: just match by name
+            matches = true;
+          }
         }
-      } else if (deviceType !== 'Cameras') {
-        // For servers, APIs, GPUs - just match by name
-        if (name.includes(keyword)) {
-          upCount++;
+      } else if (deviceType === 'Servers') {
+        // Servers: name contains "server" BUT exclude if name contains "cam" or "cameras"
+        if (name.includes('server') && !name.includes('cam')) {
+          // If district is selected, check if server name starts with district name
+          if (districtName) {
+            const upperName = (monitor['object.name'] || '').toUpperCase();
+            const upperDistrictName = districtName.toUpperCase();
+            // Get the first part of server name (before first underscore)
+            const serverPrefix = upperName.split('_')[0];
+            // Check if server name starts with district name (e.g., "EAST GODAVARI_Master Server_...")
+            // Or if district name starts with server prefix (handles "KRISHNA" server matching "KRISHNA URBAN" district)
+            if (upperName.startsWith(upperDistrictName) || 
+                upperDistrictName.startsWith(serverPrefix)) {
+              matches = true;
+            }
+          } else {
+            // Whole state: just check for server keyword
+            matches = true;
+          }
         }
-      } else if (deviceType === 'Cameras' && !districtIPs) {
-        // Whole state cameras - just match by name
-        if (name.includes(keyword)) {
-          upCount++;
+      } else if (deviceType === 'APIs') {
+        // APIs: name contains "_api/" and district name comes before "_API/"
+        if (name.includes('_api/')) {
+          if (districtName) {
+            // Extract district name from API name (part before "_API/")
+            const upperName = (monitor['object.name'] || '').toUpperCase();
+            const apiParts = upperName.split('_API/');
+            if (apiParts.length > 0) {
+              const apiDistrictName = apiParts[0].trim();
+              const upperDistrictName = districtName.toUpperCase();
+              // Check if API district matches selected district
+              // Handle variations: "KRISHNA" API might match "KRISHNA URBAN" district
+              if (apiDistrictName === upperDistrictName || 
+                  upperDistrictName.startsWith(apiDistrictName) ||
+                  apiDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+                matches = true;
+              }
+            }
+          } else {
+            // Whole state: just check for "_api/" keyword
+            matches = true;
+          }
         }
+      } else if (deviceType === 'GPUs') {
+        // GPUs: name contains "gpu" OR host contains "gpu"
+        if (name.includes('gpu') || host.includes('gpu')) {
+          if (districtName) {
+            // Extract district name from object.name (part before first '_' or '-')
+            const upperName = (monitor['object.name'] || '').toUpperCase();
+            // Split by '_' or '-' and take the first part
+            const gpuDistrictName = upperName.split(/[_-]/)[0].trim();
+            const upperDistrictName = districtName.toUpperCase();
+            // Check if GPU district matches selected district
+            // Handle variations: "KRISHNA" GPU might match "KRISHNA URBAN" district
+            if (gpuDistrictName === upperDistrictName || 
+                upperDistrictName.startsWith(gpuDistrictName) ||
+                gpuDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+              matches = true;
+            }
+          } else {
+            // Whole state: just check for "gpu" keyword
+            matches = true;
+          }
+        }
+      }
+
+      if (matches) {
+        upCount++;
       }
     });
 
     // Count DOWN devices
     downMonitors.forEach((monitor: any) => {
       const name = (monitor['object.name'] || '').toLowerCase();
+      const host = (monitor['object.host'] || '').toLowerCase();
       const monitorIP = monitor['object.ip'] || '';
       
-      if (deviceType === 'Cameras' && districtIPs) {
-        if (districtIPs.includes(monitorIP) && name.includes(keyword)) {
-          downCount++;
+      let matches = false;
+
+      if (deviceType === 'Cameras') {
+        // Cameras: name contains "cam" AND (if district selected, IP must match)
+        if (name.includes('cam')) {
+          if (districtIPs) {
+            // District selected: must match IP from Excel
+            if (districtIPs.includes(monitorIP)) {
+              matches = true;
+            }
+          } else {
+            // Whole state: just match by name
+            matches = true;
+          }
         }
-      } else if (deviceType !== 'Cameras') {
-        if (name.includes(keyword)) {
-          downCount++;
+      } else if (deviceType === 'Servers') {
+        // Servers: name contains "server" BUT exclude if name contains "cam" or "cameras"
+        if (name.includes('server') && !name.includes('cam')) {
+          // If district is selected, check if server name starts with district name
+          if (districtName) {
+            const upperName = (monitor['object.name'] || '').toUpperCase();
+            const upperDistrictName = districtName.toUpperCase();
+            // Get the first part of server name (before first underscore)
+            const serverPrefix = upperName.split('_')[0];
+            // Check if server name starts with district name (e.g., "EAST GODAVARI_Master Server_...")
+            // Or if district name starts with server prefix (handles "KRISHNA" server matching "KRISHNA URBAN" district)
+            if (upperName.startsWith(upperDistrictName) || 
+                upperDistrictName.startsWith(serverPrefix)) {
+              matches = true;
+            }
+          } else {
+            // Whole state: just check for server keyword
+            matches = true;
+          }
         }
-      } else if (deviceType === 'Cameras' && !districtIPs) {
-        if (name.includes(keyword)) {
-          downCount++;
+      } else if (deviceType === 'APIs') {
+        // APIs: name contains "_api/" and district name comes before "_API/"
+        if (name.includes('_api/')) {
+          if (districtName) {
+            // Extract district name from API name (part before "_API/")
+            const upperName = (monitor['object.name'] || '').toUpperCase();
+            const apiParts = upperName.split('_API/');
+            if (apiParts.length > 0) {
+              const apiDistrictName = apiParts[0].trim();
+              const upperDistrictName = districtName.toUpperCase();
+              // Check if API district matches selected district
+              // Handle variations: "KRISHNA" API might match "KRISHNA URBAN" district
+              if (apiDistrictName === upperDistrictName || 
+                  upperDistrictName.startsWith(apiDistrictName) ||
+                  apiDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+                matches = true;
+              }
+            }
+          } else {
+            // Whole state: just check for "_api/" keyword
+            matches = true;
+          }
         }
+      } else if (deviceType === 'GPUs') {
+        // GPUs: name contains "gpu" OR host contains "gpu"
+        if (name.includes('gpu') || host.includes('gpu')) {
+          if (districtName) {
+            // Extract district name from object.name (part before first '_' or '-')
+            const upperName = (monitor['object.name'] || '').toUpperCase();
+            // Split by '_' or '-' and take the first part
+            const gpuDistrictName = upperName.split(/[_-]/)[0].trim();
+            const upperDistrictName = districtName.toUpperCase();
+            // Check if GPU district matches selected district
+            // Handle variations: "KRISHNA" GPU might match "KRISHNA URBAN" district
+            if (gpuDistrictName === upperDistrictName || 
+                upperDistrictName.startsWith(gpuDistrictName) ||
+                gpuDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+              matches = true;
+            }
+          } else {
+            // Whole state: just check for "gpu" keyword
+            matches = true;
+          }
+        }
+      }
+
+      if (matches) {
+        downCount++;
       }
     });
 
@@ -854,7 +1141,11 @@ export const AndhraPradeshMap: React.FC = () => {
                         <p className="text-sm text-green-600 font-medium">Up</p>
                         <p className="text-2xl font-bold text-green-700">{deviceStats.up}</p>
                       </div>
-                      <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                      <div 
+                        className="bg-red-50 rounded-lg p-4 border border-red-200 cursor-pointer hover:bg-red-100 transition-colors"
+                        onClick={loadDownDevicesList}
+                        title="Click to view list of down devices"
+                      >
                         <p className="text-sm text-red-600 font-medium">Down</p>
                         <p className="text-2xl font-bold text-red-700">{deviceStats.down}</p>
                       </div>
@@ -913,6 +1204,100 @@ export const AndhraPradeshMap: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Down Devices List Modal */}
+      {showDownList && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-11/12 max-w-4xl max-h-[80vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Down {selectedDeviceType}
+                  {selectedDistrict && ` - ${getDistrictDisplayName(selectedDistrict)}`}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Total: {downDevicesList.length} device{downDevicesList.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDownList(false);
+                  setDownDevicesList([]);
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingDownList ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-600">Loading down devices...</p>
+                  </div>
+                </div>
+              ) : downDevicesList.length === 0 ? (
+                <div className="flex items-center justify-center h-32">
+                  <p className="text-sm text-gray-500">No down {selectedDeviceType.toLowerCase()} found</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {downDevicesList.map((device, index) => {
+                    // Get monitor name from visualization API format or regular format
+                    const monitorName = device.monitor || device['object.name'] || device.name || 'Unknown Device';
+                    const monitorIP = device['object.ip'] || '';
+                    const eventTimestamp = device['event.timestamp'] || device.eventTimestamp;
+                    const downDuration = eventTimestamp ? formatDuration(eventTimestamp) : null;
+                    
+                    return (
+                      <div
+                        key={device['object.id'] || device.id || index}
+                        className="bg-red-50 border border-red-200 rounded-lg p-3 hover:bg-red-100 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">
+                              {monitorName}
+                            </p>
+                            {monitorIP && (
+                              <p className="text-sm text-gray-600 mt-1">IP: {monitorIP}</p>
+                            )}
+                            {device['object.host'] && (
+                              <p className="text-sm text-gray-600 mt-1">Host: {device['object.host']}</p>
+                            )}
+                            {device['object.type'] && (
+                              <p className="text-sm text-gray-500 mt-1">Type: {device['object.type']}</p>
+                            )}
+                            {downDuration && (
+                              <p className="text-sm font-medium text-red-700 mt-2">
+                                ⏱️ Down for: {downDuration}
+                              </p>
+                            )}
+                          </div>
+                          <div className="ml-4 flex flex-col items-end">
+                            <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded mb-2">
+                              Down
+                            </span>
+                            {eventTimestamp && (
+                              <span className="text-xs text-gray-500">
+                                {new Date(eventTimestamp * 1000).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

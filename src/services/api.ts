@@ -13,13 +13,9 @@ import type {
   Alert,
 } from '../types';
 
-// API Configuration
-// In development: Use Vite proxy (/api) to avoid CORS
-// In production: Use direct API URL - browser makes requests (user needs VPN)
-const isDevelopment = import.meta.env.DEV;
-const API_BASE_URL = isDevelopment 
-  ? (import.meta.env.VITE_API_BASE_URL || '/api')  // Development: use proxy
-  : 'https://172.30.113.15/api/v1';  // Production: direct API URL from browser
+// Use Vite proxy to avoid CORS issues in development
+// The proxy will forward /api requests to https://223.196.186.236/api/v1
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // Hardcoded bearer token (safe because VPN is required)
 const BEARER_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJ1c2VyLm5hbWUiOiJBbHRoYWYiLCJpZCI6OTIzMjM4NTI0ODcsInRva2VuLnR5cGUiOiJQZXJzb25hbCBBY2Nlc3MgVG9rZW4iLCJwZXJtaXNzaW9ucyI6WyJ1c2VyLXNldHRpbmdzOnJlYWQiLCJ1c2VyLXNldHRpbmdzOnJlYWQtd3JpdGUiLCJ1c2VyLXNldHRpbmdzOmRlbGV0ZSIsInN5c3RlbS1zZXR0aW5nczpyZWFkIiwic3lzdGVtLXNldHRpbmdzOnJlYWQtd3JpdGUiLCJzeXN0ZW0tc2V0dGluZ3M6ZGVsZXRlIiwiZGlzY292ZXJ5LXNldHRpbmdzOnJlYWQiLCJkaXNjb3Zlcnktc2V0dGluZ3M6cmVhZC13cml0ZSIsImRpc2NvdmVyeS1zZXR0aW5nczpkZWxldGUiLCJtb25pdG9yLXNldHRpbmdzOnJlYWQiLCJtb25pdG9yLXNldHRpbmdzOnJlYWQtd3JpdGUiLCJtb25pdG9yLXNldHRpbmdzOmRlbGV0ZSIsImdyb3VwLXNldHRpbmdzOnJlYWQiLCJncm91cC1zZXR0aW5nczpyZWFkLXdyaXRlIiwiZ3JvdXAtc2V0dGluZ3M6ZGVsZXRlIiwiYWdlbnQtc2V0dGluZ3M6cmVhZCIsImFnZW50LXNldHRpbmdzOnJlYWQtd3JpdGUiLCJhZ2VudC1zZXR0aW5nczpkZWxldGUiLCJzbm1wLXRyYXAtc2V0dGluZ3M6cmVhZCIsInNubXAtdHJhcC1zZXR0aW5nczpyZWFkLXdyaXRlIiwic25tcC10cmFwLXNldHRpbmdzOmRlbGV0ZSIsInBsdWdpbi1saWJyYXJ5LXNldHRpbmdzOnJlYWQiLCJwbHVnaW4tbGlicmFyeS1zZXR0aW5nczpyZWFkLXdyaXRlIiwicGx1Z2luLWxpYnJhcnktc2V0dGluZ3M6ZGVsZXRlIiwiYXVkaXQtc2V0dGluZ3M6cmVhZCIsIm15LWFjY291bnQtc2V0dGluZ3M6cmVhZCIsIm15LWFjY291bnQtc2V0dGluZ3M6cmVhZC13cml0ZSIsIm5vdGlmaWNhdGlvbi1zZXR0aW5nczpyZWFkIiwiZGFzaGJvYXJkczpyZWFkLXdyaXRlIiwiZGFzaGJvYXJkczpkZWxldGUiLCJkYXNoYm9hcmRzOnJlYWQiLCJpbnZlbnRvcnk6cmVhZC13cml0ZSIsImludmVudG9yeTpkZWxldGUiLCJpbnZlbnRvcnk6cmVhZCIsInRlbXBsYXRlczpyZWFkLXdyaXRlIiwidGVtcGxhdGVzOmRlbGV0ZSIsInRlbXBsYXRlczpyZWFkIiwid2lkZ2V0czpyZWFkLXdyaXRlIiwid2lkZ2V0czpkZWxldGUiLCJ3aWRnZXRzOnJlYWQiLCJwb2xpY3ktc2V0dGluZ3M6cmVhZC13cml0ZSIsInBvbGljeS1zZXR0aW5nczpkZWxldGUiLCJwb2xpY3ktc2V0dGluZ3M6cmVhZCIsImZsb3ctc2V0dGluZ3M6cmVhZCIsImZsb3ctc2V0dGluZ3M6cmVhZC13cml0ZSIsImZsb3ctc2V0dGluZ3M6ZGVsZXRlIiwibG9nLXNldHRpbmdzOnJlYWQiLCJsb2ctc2V0dGluZ3M6cmVhZC13cml0ZSIsImxvZy1zZXR0aW5nczpkZWxldGUiLCJhaW9wcy1zZXR0aW5nczpyZWFkIiwiYWlvcHMtc2V0dGluZ3M6cmVhZC13cml0ZSIsImFpb3BzLXNldHRpbmdzOmRlbGV0ZSIsImxvZy1leHBsb3JlcjpyZWFkIiwibG9nLWV4cGxvcmVyOnJlYWQtd3JpdGUiLCJsb2ctZXhwbG9yZXI6ZGVsZXRlIiwiZmxvdy1leHBsb3JlcjpyZWFkIiwiYWxlcnQtZXhwbG9yZXI6cmVhZCIsInRyYXAtZXhwbG9yZXI6cmVhZCIsInRvcG9sb2d5OnJlYWQiLCJ0b3BvbG9neTpyZWFkLXdyaXRlIiwidG9wb2xvZ3k6ZGVsZXRlIiwicmVwb3J0czpyZWFkIiwicmVwb3J0czpyZWFkLXdyaXRlIiwicmVwb3J0czpkZWxldGUiLCJjb25maWc6cmVhZCIsImNvbmZpZzpyZWFkLXdyaXRlIiwiY29uZmlnOmRlbGV0ZSIsImFsZXJ0LWV4cGxvcmVyOnJlYWQtd3JpdGUiLCJpbnRlZ3JhdGlvbnM6cmVhZCIsImludGVncmF0aW9uczpyZWFkLXdyaXRlIiwiaW50ZWdyYXRpb25zOmRlbGV0ZSIsImNvbXBsaWFuY2Utc2V0dGluZ3M6cmVhZC13cml0ZSIsImNvbXBsaWFuY2Utc2V0dGluZ3M6ZGVsZXRlIiwiY29tcGxpYW5jZS1zZXR0aW5nczpyZWFkIiwidHJhY2U6cmVhZCIsInRyYWNlOnJlYWQtd3JpdGUiLCJ0YWctcnVsZXM6cmVhZCIsInRhZy1ydWxlczpyZWFkLXdyaXRlIiwidGFnLXJ1bGVzOmRlbGV0ZSIsIm5ldHJvdXRlLXNldHRpbmdzOnJlYWQiLCJuZXRyb3V0ZS1zZXR0aW5nczpyZWFkLXdyaXRlIiwibmV0cm91dGUtc2V0dGluZ3M6ZGVsZXRlIiwibmV0cm91dGUtZXhwbG9yZXI6cmVhZCIsInNsby1zZXR0aW5nczpyZWFkIiwic2xvLXNldHRpbmdzOnJlYWQtd3JpdGUiLCJzbG8tc2V0dGluZ3M6ZGVsZXRlIiwibWV0cmljLWV4cGxvcmVyczpyZWFkIiwibWV0cmljLWV4cGxvcmVyczpyZWFkLXdyaXRlIiwibWV0cmljLWV4cGxvcmVyczpkZWxldGUiLCJxdWVyeTpyZWFkIiwicXVlcnk6cmVhZC13cml0ZSIsImhlYWx0aC1tb25pdG9yaW5nOnJlYWQiLCJoZWFsdGgtbW9uaXRvcmluZzpyZWFkLXdyaXRlIiwiZG5zLXNlcnZlci1zZXR0aW5nczpyZWFkIiwiZG5zLXNlcnZlci1zZXR0aW5nczpyZWFkLXdyaXRlIiwiZG5zLXNlcnZlci1zZXR0aW5nczpkZWxldGUiLCJxdWVyeTpyZWFkIiwicXVlcnk6cmVhZC13cml0ZSIsInVzZXI6cmVhZC13cml0ZSIsInRva2VuOnJlYWQtd3JpdGUiXSwiaWF0IjoxNzY1MTk3ODExLCJleHAiOjE3NzI5NzM4MTEsImlzcyI6Ik1vdGFkYXRhIiwic3ViIjoiTW90YWRhdGEgQVBJIHYxIn0.gDpwLZCpNLK7fBoosu9ELLkNjg5W20eWT1jML5VGvq1I5JEef20MC15Hpfk2WjThbrMTtXXCe8gVr1S6zpJp9aMvAF-ZVH8IX1aI6P4BgCnGBpwe2SMg3H9Sgd9J4xNOTx1Hqp2twg5LCnHtu-bA43KFnKkIFGwM5QEJmC0Bt1CfPE3A-OQNJjWNIoqe6CGEwclP1S5xUI8F6s6hrDmg7KCM_tqf2JjGKNrF6ZmxSAa7fNNhUZ1UJ5kNbN8nrYwkcEp_X63lSkVS09JTmWdRie4BilQgvks1DLmdet8WaknxhYBtJABDJQ5UHdXEGQcrnON84nIjWH3ir8R-aFs88hBEowYqZIAzo89v8ghtDwTt_jduVB0i8HOSnavF-tRkuQg5PomOS2xjrtVAWhq_whUcqYteUf3bNGjmB3C416D4y6IEllltvzsFu0ajTagphr5IxQpdrfM3fl9Ln0n0IEFKlfZ78W6VcFdYNj2z0NKQt0_-71XfHu6t73AP9pzoPTRDq0_C9ky4wVsZLSQe9oGharicIRKk_1jCIvjNfYimYSgs7c1VYdMXjt1TApOF8rnMpmwkQSmrn2rHTK93bsiIieDg8D4qys6gX8eCAoCY0tpdeIrx3zib2kkkei6xI-Zvm_5VhcOtvo6LMSsDngxZ1DdIWTgGJOm7ZDG369A";
@@ -215,50 +211,54 @@ class ApiService {
     const response = await this.api.get(`/query/objects/${id}/instances`);
     // Log the FULL API response to understand the structure
     console.log('Instances API - Full Response:', JSON.stringify(response.data, null, 2));
-    console.log('Instances API - Response Type:', typeof response.data);
-    console.log('Instances API - Has result?', 'result' in response.data);
     
-    // API returns { result: [...] } or { result: {} } or just {}
-    let instances = response.data.result;
+    // API can return different structures:
+    // 1. { result: { interfaces: [...] } } - Most common
+    // 2. { result: [...] } - Direct array
+    // 3. { result: {} } - Empty object
+    // 4. {} - Empty response
     
-    // Handle different response structures
-    if (Array.isArray(instances)) {
-      // If result is an array, return it
-      console.log('Instances API - Returning array with', instances.length, 'items');
-      return instances;
-    } else if (instances && typeof instances === 'object') {
-      // If result is an object (not array), check if it's empty or has data
-      const keys = Object.keys(instances);
-      console.log('Instances API - Result is object with keys:', keys);
-      
+    const result = response.data.result;
+    
+    // Check if result has 'interfaces' property (most common case)
+    if (result && typeof result === 'object' && 'interfaces' in result) {
+      const interfaces = result.interfaces;
+      if (Array.isArray(interfaces)) {
+        console.log('Instances API - Found interfaces array with', interfaces.length, 'items');
+        return interfaces;
+      }
+    }
+    
+    // Check if result is directly an array
+    if (Array.isArray(result)) {
+      console.log('Instances API - Result is array with', result.length, 'items');
+      return result;
+    }
+    
+    // Check if result is an empty object
+    if (result && typeof result === 'object') {
+      const keys = Object.keys(result);
       if (keys.length === 0) {
-        // Empty object means no instances
-        console.log('Instances API - Empty object, returning empty array');
+        console.log('Instances API - Empty result object, returning empty array');
         return [];
       }
-      // If object has properties, it might be a single instance wrapped in object
-      // Try to convert to array
-      console.log('Instances API - Converting object to array');
-      return [instances];
-    } else if (response.data && typeof response.data === 'object' && !('result' in response.data)) {
-      // If no 'result' field, check if response.data itself is an array
-      if (Array.isArray(response.data)) {
-        console.log('Instances API - Response.data is array');
-        return response.data;
+      // If result has other properties, try to find any array property
+      for (const key of keys) {
+        if (Array.isArray(result[key])) {
+          console.log(`Instances API - Found array in result.${key} with`, result[key].length, 'items');
+          return result[key];
+        }
       }
-      // If it's an object, check if empty
-      const keys = Object.keys(response.data);
-      console.log('Instances API - Response.data is object with keys:', keys);
-      if (keys.length === 0) {
-        console.log('Instances API - Empty response.data, returning empty array');
-        return [];
-      }
-      console.log('Instances API - Converting response.data to array');
-      return [response.data];
+    }
+    
+    // Check if response.data itself is an array (no 'result' field)
+    if (Array.isArray(response.data)) {
+      console.log('Instances API - Response.data is array');
+      return response.data;
     }
     
     // Default: return empty array
-    console.log('Instances API - Default: returning empty array');
+    console.log('Instances API - No instances found, returning empty array');
     return [];
   }
 

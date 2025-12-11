@@ -35,9 +35,11 @@ export interface MonitorInstance {
   'interface.name'?: string;
   'interface.index'?: string;
   'interface.address'?: string;
+  'interface.ip.address'?: string;
   'interface.description'?: string;
   'interface.type'?: string;
   'interface.bit.type'?: string;
+  'interface.link.type'?: string;
   'interface.speed.bytes.per.sec'?: number;
   // Legacy fields for backward compatibility
   id?: string;

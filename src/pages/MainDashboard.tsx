@@ -47,42 +47,63 @@ export const MainDashboard: React.FC = () => {
       const apis = { up: 0, down: 0, total: 0 };
       const gpus = { up: 0, down: 0, total: 0 };
 
-      // Count UP monitors by category - match Python script logic exactly
-      // Use break to avoid double counting (same as Python)
+      // Count UP monitors by category
+      // Allow duplicates - monitors can be counted in multiple categories
       upMonitors.forEach((monitor: any) => {
         const name = (monitor['object.name'] || '').toLowerCase();
+        const host = (monitor['object.host'] || '').toLowerCase();
 
-        // Check in order: cam, server, api, gpu - break after first match (like Python)
+        // Cameras: name contains "cam"
         if (name.includes('cam')) {
           cameras.up++;
           cameras.total++;
-        } else if (name.includes('server')) {
+        }
+
+        // Servers: name contains "server" BUT exclude if name contains "cam" or "cameras"
+        if (name.includes('server') && !name.includes('cam')) {
           servers.up++;
           servers.total++;
-        } else if (name.includes('api')) {
+        }
+
+        // APIs: name contains "_api/"
+        if (name.includes('_api/')) {
           apis.up++;
           apis.total++;
-        } else if (name.includes('gpu')) {
+        }
+
+        // GPUs: name contains "gpu" OR host contains "gpu"
+        if (name.includes('gpu') || host.includes('gpu')) {
           gpus.up++;
           gpus.total++;
         }
       });
 
-      // Count DOWN monitors by category - match Python script logic exactly
+      // Count DOWN monitors by category
+      // Allow duplicates - monitors can be counted in multiple categories
       downMonitors.forEach((monitor: any) => {
         const name = (monitor['object.name'] || '').toLowerCase();
+        const host = (monitor['object.host'] || '').toLowerCase();
 
-        // Check in order: cam, server, api, gpu - break after first match (like Python)
+        // Cameras: name contains "cam"
         if (name.includes('cam')) {
           cameras.down++;
           cameras.total++;
-        } else if (name.includes('server')) {
+        }
+
+        // Servers: name contains "server" BUT exclude if name contains "cam" or "cameras"
+        if (name.includes('server') && !name.includes('cam')) {
           servers.down++;
           servers.total++;
-        } else if (name.includes('api')) {
+        }
+
+        // APIs: name contains "_api/"
+        if (name.includes('_api/')) {
           apis.down++;
           apis.total++;
-        } else if (name.includes('gpu')) {
+        }
+
+        // GPUs: name contains "gpu" OR host contains "gpu"
+        if (name.includes('gpu') || host.includes('gpu')) {
           gpus.down++;
           gpus.total++;
         }

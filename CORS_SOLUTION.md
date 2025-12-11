@@ -6,7 +6,7 @@
 
 ### Your Setup:
 - **Frontend:** `http://localhost:3000` (React app)
-- **Backend API:** `https://172.30.113.15/api/v1` (Motadata server)
+- **Backend API:** `https://223.196.186.236/api/v1` (Motadata server)
 - **Problem:** Different origins! Browser blocks the request.
 
 ### Why Python Works But Browser Doesn't:
@@ -23,12 +23,12 @@ I've configured a **proxy** in your Vite development server. This tricks the bro
 
 ### Before (Direct Call - CORS Error):
 ```
-Browser → https://172.30.113.15/api/v1 ❌ BLOCKED
+Browser → https://223.196.186.236/api/v1 ❌ BLOCKED
 ```
 
 ### After (Using Proxy - Works!):
 ```
-Browser → http://localhost:3000/api → Vite Proxy → https://172.30.113.15/api/v1 ✅
+Browser → http://localhost:3000/api → Vite Proxy → https://223.196.186.236/api/v1 ✅
 ```
 
 The browser thinks it's calling the same origin (localhost:3000), so no CORS error!
@@ -43,7 +43,7 @@ server: {
   port: 3000,
   proxy: {
     '/api': {
-      target: 'https://172.30.113.15',
+      target: 'https://223.196.186.236',
       changeOrigin: true,
       secure: false, // Allows self-signed SSL certificates
       rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
@@ -54,13 +54,13 @@ server: {
 
 **What this does:**
 - Intercepts any request to `/api/*`
-- Forwards it to `https://172.30.113.15/api/v1/*`
+- Forwards it to `https://223.196.186.236/api/v1/*`
 - Changes the origin to match the API server
 - Ignores SSL certificate errors (self-signed cert)
 
 ### 2. Updated `src/services/api.ts`
 ```typescript
-// Changed from: 'https://172.30.113.15/api/v1'
+// Changed from: 'https://223.196.186.236/api/v1'
 // Changed to:   '/api'
 const API_BASE_URL = '/api';
 ```
@@ -99,7 +99,7 @@ Request URL: http://localhost:3000/api/query/objects
 Status: 200 OK
 ```
 
-Notice: Request is to `localhost:3000/api` (not `172.30.113.15`) - that's the proxy working!
+Notice: Request is to `localhost:3000/api` (not `223.196.186.236`) - that's the proxy working!
 
 ---
 
@@ -116,7 +116,7 @@ Notice: Request is to `localhost:3000/api` (not `172.30.113.15`) - that's the pr
    ↓
 3. Vite Proxy intercepts the request
    ↓
-   Forwards to: https://172.30.113.15/api/v1/query/objects
+   Forwards to: https://223.196.186.236/api/v1/query/objects
    ↓
 4. API Server responds
    ↓
@@ -148,13 +148,13 @@ npm run dev
 **Check:**
 1. Did you restart the dev server? (REQUIRED!)
 2. Is the API server running? Test with: `python test_api.py`
-3. Check browser console - is it calling `localhost:3000/api` or `172.30.113.15`?
+3. Check browser console - is it calling `localhost:3000/api` or `223.196.186.236`?
    - Should be `localhost:3000/api`
 
 ### Error: "net::ERR_CONNECTION_REFUSED"
 **Check:**
 1. Is your API server accessible?
-2. Can you ping 172.30.113.15?
+2. Can you ping 223.196.186.236?
 3. Run: `python test_api.py` - does it work?
 
 ---
@@ -171,7 +171,7 @@ npm run dev
 
 ### Why Direct Call Doesn't Work:
 
-1. **Browser sees:** "Calling different origin (172.30.113.15)"
+1. **Browser sees:** "Calling different origin (223.196.186.236)"
 2. **CORS check triggered:** Browser checks for CORS headers
 3. **API doesn't send CORS headers:** No 'Access-Control-Allow-Origin'
 4. **Browser blocks:** Security policy violation ❌
@@ -193,7 +193,7 @@ CORS(app, origins=["https://your-production-domain.com"])
 ```
 
 ### Option 2: Deploy on Same Domain
-Deploy frontend to: `https://172.30.113.15/dashboard`
+Deploy frontend to: `https://223.196.186.236/dashboard`
 Same domain = no CORS!
 
 ### Option 3: Use API Gateway

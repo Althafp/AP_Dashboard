@@ -46,7 +46,7 @@ You should see:
 | What | Value |
 |------|-------|
 | **Dashboard URL** | http://localhost:3001 |
-| **API Server** | https://172.30.113.15/api/v1 |
+| **API Server** | https://223.196.186.236/api/v1 |
 | **Proxy** | Configured in vite.config.ts |
 | **Token** | Auto-filled in login form |
 

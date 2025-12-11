@@ -27,7 +27,7 @@ Browser → /api/query/objects
          ↓
    Vite Proxy intercepts
          ↓
-   Forwards to: https://172.30.113.15/api/v1/query/objects
+   Forwards to: https://223.196.186.236/api/v1/query/objects
          ↓
    ✅ Success!
 ```
@@ -71,7 +71,7 @@ Leave `VITE_API_BASE_URL` empty or don't set it at all:
 ### For Production:
 When you deploy, you can set:
 ```env
-VITE_API_BASE_URL=https://172.30.113.15/api/v1
+VITE_API_BASE_URL=https://223.196.186.236/api/v1
 ```
 
 But for development, use the proxy!

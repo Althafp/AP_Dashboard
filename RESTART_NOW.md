@@ -26,12 +26,12 @@ npm run dev
 
 ### Before (CORS Error):
 ```
-Browser → https://172.30.113.15/api/v1 ❌ BLOCKED
+Browser → https://223.196.186.236/api/v1 ❌ BLOCKED
 ```
 
 ### After (Works!):
 ```
-Browser → localhost:3000/api → Proxy → https://172.30.113.15/api/v1 ✅
+Browser → localhost:3000/api → Proxy → https://223.196.186.236/api/v1 ✅
 ```
 
 ---

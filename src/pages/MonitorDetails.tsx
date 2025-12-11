@@ -379,7 +379,7 @@ export const MonitorDetails: React.FC = () => {
                       {instance['interface.index'] || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {instance['interface.address'] || 'N/A'}
+                      {instance['interface.ip.address'] || instance['interface.address'] || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {instance['interface.description'] || 'N/A'}
