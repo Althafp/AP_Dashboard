@@ -9,7 +9,7 @@ eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJ1c2VyLm5hbWUiOiJBbHRoYWYiLCJpZCI6OTIzMjM
 ======================================
 
 API Configuration:
-- API URL: https://223.196.186.236/api/v1
+- API URL: https://172.30.113.15/api/v1
 - User: Althaf
 - Token Type: Personal Access Token (Motadata)
 - Expires: March 2025

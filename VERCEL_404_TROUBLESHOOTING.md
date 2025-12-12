@@ -118,7 +118,7 @@ export default async function handler(req, res) {
 - Redeploy on Vercel
 
 ### Issue 2: Wrong Base URL
-**Symptom:** Requests go directly to `223.196.186.236` (bypassing proxy)  
+**Symptom:** Requests go directly to `172.30.113.15` (bypassing proxy)  
 **Fix:**
 - Remove `VITE_API_BASE_URL` from Vercel environment variables
 - App should use `/api` (relative path)
@@ -164,4 +164,5 @@ export default async function handler(req, res) {
 - Need to use a different deployment approach
 
 Let me know what you find in the Vercel dashboard!
+
 

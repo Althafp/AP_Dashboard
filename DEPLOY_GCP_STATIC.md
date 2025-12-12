@@ -127,7 +127,7 @@ firebase deploy --only hosting
 
 ### API Configuration
 Since you're not using server.js, the app makes **direct API calls** from the browser to:
-- `https://223.196.186.236/api/v1`
+- `https://172.30.113.15/api/v1`
 
 **Requirements:**
 - Users must have VPN access to reach the API
@@ -139,13 +139,13 @@ If you need environment variables, you can:
 1. **Cloud Run**: Set them in the deployment command:
 ```bash
 gcloud run deploy ap-dashboard \
-  --set-env-vars "VITE_API_BASE_URL=https://223.196.186.236/api/v1" \
+  --set-env-vars "VITE_API_BASE_URL=https://172.30.113.15/api/v1" \
   ...
 ```
 
 2. **Build-time**: Create a `.env.production` file:
 ```
-VITE_API_BASE_URL=https://223.196.186.236/api/v1
+VITE_API_BASE_URL=https://172.30.113.15/api/v1
 ```
 
 ---

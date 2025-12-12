@@ -4,7 +4,7 @@
 
 Based on your `test_api.py` file, I've configured the dashboard to work with your backend:
 
-- **API URL**: `https://223.196.186.236/api/v1`
+- **API URL**: `https://172.30.113.15/api/v1`
 - **Bearer Token**: Already saved in `.env` file
 
 ## 🎯 Start the Dashboard in 3 Steps
@@ -45,7 +45,7 @@ Once logged in, you can:
 
 Your `.env` file is already configured with:
 ```env
-VITE_API_BASE_URL=https://223.196.186.236/api/v1
+VITE_API_BASE_URL=https://172.30.113.15/api/v1
 VITE_BEARER_TOKEN=[your token]
 ```
 
@@ -67,7 +67,7 @@ For production, consider:
 ### Issue: "Network Error" or "Connection Failed"
 
 **Check these:**
-1. Is the API server running at `https://223.196.186.236`?
+1. Is the API server running at `https://172.30.113.15`?
 2. Can you access it from your Python script? (Run `test_api.py` to verify)
 3. Browser might block mixed content (HTTPS API from HTTP localhost)
 

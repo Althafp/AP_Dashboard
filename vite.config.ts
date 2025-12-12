@@ -18,9 +18,10 @@ export default defineConfig({
     ],
     proxy: {
       '/api': {
-        target: 'https://223.196.186.236',
+        target: 'https://172.30.113.15',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
+        timeout: 30000, // 30 second timeout
         rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
         configure: (proxy, _options) => {
           proxy.on('proxyReq', (proxyReq, req, _res) => {
@@ -34,6 +35,31 @@ export default defineConfig({
             // Add required headers for Motadata API
             proxyReq.setHeader('Accept', 'application/json');
             proxyReq.setHeader('Content-Type', 'application/json');
+            
+            // Log the request for debugging
+            console.log(`[Proxy] Forwarding ${req.method} ${req.url} to https://172.30.113.15/api/v1${req.url.replace('/api', '')}`);
+          });
+          
+          proxy.on('error', (err, req, res) => {
+            console.error('[Proxy Error]', err.message);
+            console.error('[Proxy Error] Request URL:', req.url);
+            if (!res.headersSent) {
+              res.writeHead(500, {
+                'Content-Type': 'application/json',
+              });
+              res.end(JSON.stringify({
+                error: 'Proxy Error',
+                message: err.message,
+                details: 'Failed to connect to API server at https://172.30.113.15. Please check network connectivity.'
+              }));
+            }
+          });
+          
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log(`[Proxy] Response ${proxyRes.statusCode} for ${req.method} ${req.url}`);
+            if (proxyRes.statusCode >= 500) {
+              console.error(`[Proxy] Server error ${proxyRes.statusCode} from API server`);
+            }
           });
         },
       }
