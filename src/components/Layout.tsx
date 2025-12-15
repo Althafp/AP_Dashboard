@@ -7,7 +7,10 @@ import {
   Bell, 
   BarChart3,
   LogOut,
-  MapPin
+  MapPin,
+  Server,
+  Activity,
+  Cpu
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -33,6 +36,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/performance', icon: LineChart, label: 'Performance' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/alerts', icon: Bell, label: 'Alerts' },
+    { path: '/server-utilization', icon: Server, label: 'Server Utilization' },
+    { path: '/live-utilization', icon: Activity, label: 'Live Utilization' },
+    { path: '/cpu-utilization', icon: Cpu, label: 'CPU Utilization' },
   ];
 
   return (

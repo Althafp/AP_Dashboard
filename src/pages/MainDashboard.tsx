@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Camera, Server, Cpu, MonitorDot } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { apiService } from '../services/api';
+import { parseGPUIPs } from '../utils/excelParser';
 
 interface CategoryStats {
   name: string;
@@ -23,10 +24,25 @@ export const MainDashboard: React.FC = () => {
     { name: 'GPUs', total: 0, up: 0, down: 0, icon: <Cpu className="h-6 w-6" />, color: '#8B5CF6' }, // Purple
   ]);
   const [loading, setLoading] = useState(true);
+  const [gpuIPs, setGpuIPs] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadGPUExcelData();
+  }, []);
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [gpuIPs]);
+
+  const loadGPUExcelData = async () => {
+    try {
+      const gpuData = await parseGPUIPs('/GPU IPs.xlsx');
+      setGpuIPs(gpuData.allIPs);
+      console.log(`Loaded ${gpuData.allIPs.length} GPU IPs from Excel`);
+    } catch (error) {
+      console.error('Error loading GPU IPs from Excel:', error);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -71,10 +87,12 @@ export const MainDashboard: React.FC = () => {
           apis.total++;
         }
 
-        // GPUs: name contains "gpu" OR host contains "gpu"
-        if (name.includes('gpu') || host.includes('gpu')) {
-          gpus.up++;
-          gpus.total++;
+        // GPUs: Use Excel IP list - check if monitorIP is in gpuIPs
+        const monitorIPUp = monitor['object.ip'] || '';
+        if ((name.includes('gpu') || host.includes('gpu')) && !name.includes('non_gpu') && !host.includes('non_gpu')) {
+          if (gpuIPs.length > 0 && gpuIPs.includes(monitorIPUp)) {
+            gpus.up++;
+          }
         }
       });
 
@@ -102,12 +120,20 @@ export const MainDashboard: React.FC = () => {
           apis.total++;
         }
 
-        // GPUs: name contains "gpu" OR host contains "gpu"
-        if (name.includes('gpu') || host.includes('gpu')) {
-          gpus.down++;
-          gpus.total++;
+        // GPUs: Use Excel IP list - check if monitorIP is in gpuIPs
+        const monitorIPDown = monitor['object.ip'] || '';
+        if ((name.includes('gpu') || host.includes('gpu')) && !name.includes('non_gpu') && !host.includes('non_gpu')) {
+          if (gpuIPs.length > 0 && gpuIPs.includes(monitorIPDown)) {
+            gpus.down++;
+          }
         }
       });
+
+      // For GPUs: Total comes from Excel, up = total - down
+      if (gpuIPs.length > 0) {
+        gpus.total = gpuIPs.length;
+        gpus.up = gpus.total - gpus.down;
+      }
 
       console.log('Category Stats:', { cameras, servers, apis, gpus });
 

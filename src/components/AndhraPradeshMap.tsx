@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { apiService } from '../services/api';
-import { parseExcelFile, DistrictCameraMap, normalizeDistrictName, getDistrictDisplayName } from '../utils/excelParser';
+import { parseExcelFile, DistrictCameraMap, normalizeDistrictName, getDistrictDisplayName, parseUPSCameraMapping, UPSCameraMapping, parseGPUIPs, DistrictGPUMap } from '../utils/excelParser';
 
 interface DistrictInfo {
   name: string;
@@ -25,7 +25,8 @@ const UPS_DISTRICT_CODES: Record<string, string> = {
   'ATP': 'ANANTAPUR',
   'SRK': 'SRIKAKULAM',
   'NLR': 'NELLORE',
-  'KDP': 'KADAPA'
+  'KDP': 'KADAPA',
+  'GNT': 'GUNTUR'
 };
 
 // Helper function to get district name from UPS code
@@ -48,6 +49,8 @@ export const AndhraPradeshMap: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [districtCameraMap, setDistrictCameraMap] = useState<DistrictCameraMap>({});
+  const [gpuIPs, setGpuIPs] = useState<string[]>([]);
+  const [districtGPUMap, setDistrictGPUMap] = useState<DistrictGPUMap>({});
   const [deviceStats, setDeviceStats] = useState<{ up: number; down: number } | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const [showDownList, setShowDownList] = useState(false);
@@ -60,6 +63,16 @@ export const AndhraPradeshMap: React.FC = () => {
     GPUs: 0,
     UPS: 0
   });
+  const [districtDeviceTypeCounts, setDistrictDeviceTypeCounts] = useState<Record<DeviceType, number>>({
+    Cameras: 0,
+    Servers: 0,
+    APIs: 0,
+    GPUs: 0,
+    UPS: 0
+  });
+  const [upsCameraMapping, setUpsCameraMapping] = useState<UPSCameraMapping>({ upsToCameras: {}, cameraToUPS: {} });
+  const [deviceMappingData, setDeviceMappingData] = useState<any>(null);
+  const [loadingMapping, setLoadingMapping] = useState(false);
   const mapInstanceRef = useRef<any>(null);
   const dataLayerRef = useRef<any>(null);
   const districtsRef = useRef<Map<string, DistrictInfo>>(new Map());
@@ -95,7 +108,6 @@ export const AndhraPradeshMap: React.FC = () => {
 
       allMonitors.forEach((monitor: any) => {
         const name = (monitor['object.name'] || '').toLowerCase();
-        const host = (monitor['object.host'] || '').toLowerCase();
 
         // Cameras
         if (name.includes('cam')) {
@@ -109,19 +121,130 @@ export const AndhraPradeshMap: React.FC = () => {
         if (name.includes('_api/')) {
           counts.APIs++;
         }
-        // GPUs
-        if (name.includes('gpu') || host.includes('gpu')) {
-          counts.GPUs++;
-        }
+        // GPUs: Use Excel list for total count (will be updated when Excel is loaded)
+        // This is just a placeholder - actual count comes from Excel
+        // counts.GPUs is set from gpuIPs.length after Excel loads
         // UPS
         if (name.includes('_ups')) {
           counts.UPS++;
         }
       });
 
+      // Update GPU count from Excel list
+      counts.GPUs = gpuIPs.length;
+      
       setDeviceTypeCounts(counts);
     } catch (error) {
       console.error('Error loading device type counts:', error);
+    }
+  };
+
+  // Update GPU count when gpuIPs changes
+  useEffect(() => {
+    if (gpuIPs.length > 0) {
+      setDeviceTypeCounts(prev => ({
+        ...prev,
+        GPUs: gpuIPs.length
+      }));
+    }
+  }, [gpuIPs]);
+
+  // Calculate district-specific device type counts
+  const calculateDistrictDeviceTypeCounts = async (district: string) => {
+    try {
+      const [upResponse, downResponse] = await Promise.all([
+        apiService.getApi().get('/query/objects/status?status=Up'),
+        apiService.getApi().get('/query/objects/status?status=Down'),
+      ]);
+
+      const upMonitors = upResponse.data.result || upResponse.data || [];
+      const downMonitors = downResponse.data.result || downResponse.data || [];
+      const allMonitors = [...upMonitors, ...downMonitors];
+
+      const excelDistrictName = normalizeDistrictName(district);
+      const cameraIPs = districtCameraMap[excelDistrictName] || [];
+
+      // Count each device type for this district
+      const counts: Record<DeviceType, number> = {
+        Cameras: 0,
+        Servers: 0,
+        APIs: 0,
+        GPUs: 0,
+        UPS: 0
+      };
+
+      allMonitors.forEach((monitor: any) => {
+        const name = (monitor['object.name'] || '').toLowerCase();
+        const host = (monitor['object.host'] || '').toLowerCase();
+        const monitorIP = monitor['object.ip'] || '';
+
+        // Cameras
+        if (name.includes('cam')) {
+          if (cameraIPs.length > 0 && cameraIPs.includes(monitorIP)) {
+            counts.Cameras++;
+          }
+        }
+        // Servers
+        if (name.includes('server') && !name.includes('cam')) {
+          const upperName = (monitor['object.name'] || '').toUpperCase();
+          const upperDistrictName = excelDistrictName.toUpperCase();
+          const serverPrefix = upperName.split('_')[0];
+          if (upperName.startsWith(upperDistrictName) || upperDistrictName.startsWith(serverPrefix)) {
+            counts.Servers++;
+          }
+        }
+        // APIs
+        if (name.includes('_api/')) {
+          const upperName = (monitor['object.name'] || '').toUpperCase();
+          const apiParts = upperName.split('_API/');
+          if (apiParts.length > 0) {
+            const apiDistrictName = apiParts[0].trim();
+            const upperDistrictName = excelDistrictName.toUpperCase();
+            if (apiDistrictName === upperDistrictName || 
+                upperDistrictName.startsWith(apiDistrictName) ||
+                apiDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+              counts.APIs++;
+            }
+          }
+        }
+        // GPUs: exclude "Non_GPU"
+        if ((name.includes('gpu') || host.includes('gpu')) && !name.includes('non_gpu') && !host.includes('non_gpu')) {
+          const upperName = (monitor['object.name'] || '').toUpperCase();
+          const gpuDistrictName = upperName.split(/[_-]/)[0].trim();
+          const upperDistrictName = excelDistrictName.toUpperCase();
+          if (gpuDistrictName === upperDistrictName || 
+              upperDistrictName.startsWith(gpuDistrictName) ||
+              gpuDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+            counts.GPUs++;
+          }
+        }
+        // UPS
+        if (name.includes('_ups')) {
+          const upperName = (monitor['object.name'] || '').toUpperCase();
+          const upsParts = upperName.split('_UPS');
+          if (upsParts.length > 0) {
+            const upsCode = upsParts[0].trim();
+            const upsDistrictName = getDistrictFromUPSCode(upsCode);
+            const upperDistrictName = excelDistrictName.toUpperCase();
+            if (upsDistrictName) {
+              if (upsDistrictName === upperDistrictName || 
+                  upperDistrictName.startsWith(upsDistrictName) ||
+                  upsDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+                counts.UPS++;
+              }
+            } else {
+              const normalizedDistrict = upperDistrictName.replace(/\s+/g, '');
+              if (upsCode === normalizedDistrict || normalizedDistrict.startsWith(upsCode)) {
+                counts.UPS++;
+              }
+            }
+          }
+        }
+      });
+
+      setDistrictDeviceTypeCounts(counts);
+    } catch (error) {
+      console.error('Error calculating district device type counts:', error);
     }
   };
 
@@ -135,9 +258,19 @@ export const AndhraPradeshMap: React.FC = () => {
     if (selectedDistrict) {
       // Load district-specific stats
       loadDeviceStats(selectedDistrict, selectedDeviceType);
+      // Calculate district-specific device type counts
+      calculateDistrictDeviceTypeCounts(selectedDistrict);
     } else {
       // Load whole state stats (when no district selected or on mount)
       loadWholeStateStats();
+      // Reset district counts when no district selected
+      setDistrictDeviceTypeCounts({
+        Cameras: 0,
+        Servers: 0,
+        APIs: 0,
+        GPUs: 0,
+        UPS: 0
+      });
     }
   }, [selectedDistrict, selectedDeviceType, districtCameraMap]);
 
@@ -145,6 +278,67 @@ export const AndhraPradeshMap: React.FC = () => {
     try {
       const map = await parseExcelFile('/Book1.xlsx');
       setDistrictCameraMap(map);
+      
+      // Load UPS-Camera mappings from multiple district Excel files and merge them
+      try {
+        const mappingFiles = [
+          '/GUNTUR UPS & CAMERA IPS MAPING DATA.xlsx',
+          '/Srikakulam Camera with UPS-IP Details.xlsx',
+          '/PRAKASAM Camera & ups maping data.xlsx',
+          '/Nellore Camera with UPS-IP Details.xlsx',
+          '/Vizianagaram Camera with UPS-IP Details.xlsx',
+          '/Visakhapatnam Camera with UPS-IP Details.xlsx',
+        ];
+
+        const mappingResults = await Promise.all(
+          mappingFiles.map(async (file) => {
+            try {
+              return await parseUPSCameraMapping(file);
+            } catch (err) {
+              console.warn(`Error loading UPS-Camera mapping from ${file} (may not exist):`, err);
+              return { upsToCameras: {}, cameraToUPS: {} } as UPSCameraMapping;
+            }
+          })
+        );
+
+        // Merge all mappings into a single UPSCameraMapping
+        const mergedUpsToCameras: { [upsIP: string]: string[] } = {};
+        const mergedCameraToUPS: { [cameraIP: string]: string } = {};
+
+        mappingResults.forEach((mapping) => {
+          Object.entries(mapping.upsToCameras).forEach(([upsIP, cameras]) => {
+            if (!mergedUpsToCameras[upsIP]) {
+              mergedUpsToCameras[upsIP] = [];
+            }
+            cameras.forEach((camIP) => {
+              if (!mergedUpsToCameras[upsIP].includes(camIP)) {
+                mergedUpsToCameras[upsIP].push(camIP);
+              }
+            });
+          });
+
+          Object.entries(mapping.cameraToUPS).forEach(([camIP, upsIP]) => {
+            // Last one wins if duplicates, which is fine because a camera should have only one UPS
+            mergedCameraToUPS[camIP] = upsIP;
+          });
+        });
+
+        setUpsCameraMapping({
+          upsToCameras: mergedUpsToCameras,
+          cameraToUPS: mergedCameraToUPS,
+        });
+      } catch (upsError) {
+        console.warn('Error loading UPS-Camera mappings:', upsError);
+      }
+      
+      // Load GPU IPs from Excel file
+      try {
+        const gpuData = await parseGPUIPs('/GPU IPs.xlsx');
+        setGpuIPs(gpuData.allIPs);
+        setDistrictGPUMap(gpuData.districtMap);
+      } catch (gpuError) {
+        console.warn('Error loading GPU IPs (may not exist):', gpuError);
+      }
     } catch (error) {
       console.error('Error loading Excel data:', error);
     }
@@ -163,7 +357,7 @@ export const AndhraPradeshMap: React.FC = () => {
       const downMonitors = downResponse.data.result || downResponse.data || [];
 
       // Count devices by type for whole state (same logic as MainDashboard)
-      const stats = countDevicesByType(upMonitors, downMonitors, selectedDeviceType, null, null);
+      const stats = countDevicesByType(upMonitors, downMonitors, selectedDeviceType, null, null, null);
       
       console.log(`Whole State ${selectedDeviceType} Stats:`, stats);
       setDeviceStats(stats);
@@ -195,7 +389,9 @@ export const AndhraPradeshMap: React.FC = () => {
 
       // Count devices by type for this district
       // Pass district name for server filtering, cameraIPs for camera filtering
-      const stats = countDevicesByType(upMonitors, downMonitors, deviceType, cameraIPs, excelDistrictName);
+      // For GPUs, get district GPU IPs from Excel
+      const districtGPUIPs = deviceType === 'GPUs' ? (districtGPUMap[excelDistrictName.toUpperCase()] || []) : null;
+      const stats = countDevicesByType(upMonitors, downMonitors, deviceType, cameraIPs, excelDistrictName, districtGPUIPs);
       
       console.log(`District ${district} ${deviceType} Stats:`, stats);
       setDeviceStats(stats);
@@ -296,13 +492,170 @@ export const AndhraPradeshMap: React.FC = () => {
     return parts.length > 0 ? parts.join(' ') : 'Just now';
   };
 
+  // Load mapping data when a device is clicked
+  const handleDeviceClick = async (device: any, deviceIP: string) => {
+    setLoadingMapping(true);
+    
+    try {
+      // Fetch all monitors to check status
+      const [upResponse, downResponse] = await Promise.all([
+        apiService.getApi().get('/query/objects/status?status=Up'),
+        apiService.getApi().get('/query/objects/status?status=Down'),
+      ]);
+
+      const upMonitors = upResponse.data.result || upResponse.data || [];
+      const downMonitors = downResponse.data.result || downResponse.data || [];
+      const allMonitors = [...upMonitors, ...downMonitors];
+
+      // Create IP to monitor mapping for quick lookup
+      const monitorByIP: { [ip: string]: any } = {};
+      allMonitors.forEach((monitor: any) => {
+        const ip = monitor['object.ip'] || '';
+        if (ip) {
+          monitorByIP[ip] = monitor;
+        }
+      });
+
+      let mappingData: any = null;
+
+      // Check district-wide status if district is selected
+      let districtDownCount = 0;
+      let districtTotalCount = 0;
+      if (selectedDistrict) {
+        const excelDistrictName = normalizeDistrictName(selectedDistrict);
+        const districtIPs = districtCameraMap[excelDistrictName] || [];
+        districtTotalCount = districtIPs.length;
+        districtDownCount = districtIPs.filter((ip: string) => 
+          downMonitors.some((m: any) => (m['object.ip'] || '') === ip)
+        ).length;
+      }
+
+      if (selectedDeviceType === 'UPS') {
+        // UPS clicked - show connected cameras
+        const connectedCameras = upsCameraMapping.upsToCameras[deviceIP] || [];
+        const cameraStatuses = connectedCameras.map((cameraIP: string) => {
+          const cameraMonitor = monitorByIP[cameraIP];
+          const isUp = upMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+          const isDown = downMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+          
+          return {
+            ip: cameraIP,
+            name: cameraMonitor?.['object.name'] || cameraIP,
+            status: isUp ? 'Up' : isDown ? 'Down' : 'Unknown',
+            monitor: cameraMonitor
+          };
+        });
+
+        // Determine reason for down
+        const camerasDown = cameraStatuses.filter((c: any) => c.status === 'Down').length;
+        const camerasUp = cameraStatuses.filter((c: any) => c.status === 'Up').length;
+        const allCamerasDown = camerasDown === cameraStatuses.length && cameraStatuses.length > 0;
+        const allCamerasUp = camerasUp === cameraStatuses.length && cameraStatuses.length > 0;
+        const isWholeDistrictDown = selectedDistrict && districtDownCount === districtTotalCount && districtTotalCount > 0;
+
+        let reason = '';
+        if (isWholeDistrictDown) {
+          reason = 'Network Issue - Whole district is down';
+        } else if (allCamerasDown) {
+          reason = 'Power Issue - UPS and all connected cameras are down';
+        } else if (camerasDown > 0 && camerasUp > 0) {
+          reason = 'CAT6 Issue or Camera End Issue - Some cameras down while UPS is down';
+        } else if (allCamerasUp) {
+          reason = 'Connected to Raw Current - Cameras are up but UPS is down';
+        } else {
+          reason = 'Power Issue - UPS and connected cameras are down';
+        }
+
+        mappingData = {
+          type: 'UPS',
+          upsIP: deviceIP,
+          upsName: device.monitor || device['object.name'] || deviceIP,
+          upsStatus: 'Down',
+          connectedCameras: cameraStatuses,
+          reason: reason,
+          districtDownCount: districtDownCount,
+          districtTotalCount: districtTotalCount
+        };
+      } else if (selectedDeviceType === 'Cameras') {
+        // Camera clicked - show connected UPS and other cameras on same UPS
+        const connectedUPS = upsCameraMapping.cameraToUPS[deviceIP] || null;
+        let upsStatus = 'Unknown';
+        let upsMonitor = null;
+        let allCamerasOnUPS: any[] = [];
+        
+        if (connectedUPS) {
+          upsMonitor = monitorByIP[connectedUPS];
+          const isUp = upMonitors.some((m: any) => (m['object.ip'] || '') === connectedUPS);
+          const isDown = downMonitors.some((m: any) => (m['object.ip'] || '') === connectedUPS);
+          upsStatus = isUp ? 'Up' : isDown ? 'Down' : 'Unknown';
+
+          // Get all cameras connected to this UPS
+          const camerasOnUPS = upsCameraMapping.upsToCameras[connectedUPS] || [];
+          allCamerasOnUPS = camerasOnUPS.map((cameraIP: string) => {
+            const cameraMonitor = monitorByIP[cameraIP];
+            const isUp = upMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+            const isDown = downMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+            
+            return {
+              ip: cameraIP,
+              name: cameraMonitor?.['object.name'] || cameraIP,
+              status: isUp ? 'Up' : isDown ? 'Down' : 'Unknown',
+              monitor: cameraMonitor,
+              isSelected: cameraIP === deviceIP
+            };
+          });
+        }
+
+        // Determine reason for down - based on SELECTED camera status
+        const selectedCamera = allCamerasOnUPS.find((c: any) => c.isSelected);
+        const selectedCameraStatus = selectedCamera ? selectedCamera.status : 'Down'; // Default to Down since we're in down list
+        const isWholeDistrictDown = selectedDistrict && districtDownCount === districtTotalCount && districtTotalCount > 0;
+
+        let reason = '';
+        if (isWholeDistrictDown) {
+          reason = 'Network Issue - Whole district is down';
+        } else if (selectedCameraStatus === 'Down' && upsStatus === 'Down') {
+          reason = 'Power Issue - UPS and cameras are down';
+        } else if (selectedCameraStatus === 'Down' && upsStatus === 'Up') {
+          reason = 'CAT6 Issue or Camera End Issue - Cameras down while UPS is up';
+        } else if (selectedCameraStatus === 'Up' && upsStatus === 'Down') {
+          reason = 'Connected to Raw Current - Cameras are up but UPS is down';
+        } else {
+          reason = 'Power Issue - UPS and cameras are down';
+        }
+
+        mappingData = {
+          type: 'Camera',
+          cameraIP: deviceIP,
+          cameraName: device.monitor || device['object.name'] || deviceIP,
+          cameraStatus: 'Down',
+          connectedUPS: connectedUPS,
+          upsStatus: upsStatus,
+          upsMonitor: upsMonitor,
+          upsName: upsMonitor?.['object.name'] || connectedUPS || 'Not Found',
+          allCamerasOnUPS: allCamerasOnUPS,
+          reason: reason,
+          districtDownCount: districtDownCount,
+          districtTotalCount: districtTotalCount
+        };
+      }
+
+      setDeviceMappingData(mappingData);
+    } catch (error) {
+      console.error('Error loading device mapping:', error);
+      setDeviceMappingData(null);
+    } finally {
+      setLoadingMapping(false);
+    }
+  };
+
   const loadDownDevicesList = async () => {
     setLoadingDownList(true);
     setShowDownList(true);
     try {
       let filteredDevices: any[] = [];
 
-      // Use visualization API for cameras (ID: 92323865253)
+      // Use visualization API for cameras (ID: 92323865253) and UPS (ID: 92323865741)
       if (selectedDeviceType === 'Cameras') {
         try {
           const vizResponse = await apiService.getApi().get('/query/visualization/92323865253');
@@ -346,6 +699,75 @@ export const AndhraPradeshMap: React.FC = () => {
             return false;
           });
         }
+      } else if (selectedDeviceType === 'UPS') {
+        // Use visualization API for UPS (ID: 92323865741)
+        try {
+          const vizResponse = await apiService.getApi().get('/query/visualization/92323865741');
+          const vizData = vizResponse.data.result || vizResponse.data || [];
+          
+          // Filter by district if selected
+          if (selectedDistrict) {
+            const excelDistrictName = normalizeDistrictName(selectedDistrict);
+            
+            filteredDevices = vizData.filter((item: any) => {
+              const monitorName = (item.monitor || item['object.name'] || '').toUpperCase();
+              if (monitorName.includes('_UPS')) {
+                const upsParts = monitorName.split('_UPS');
+                if (upsParts.length > 0) {
+                  const upsCode = upsParts[0].trim();
+                  const upsDistrictName = getDistrictFromUPSCode(upsCode);
+                  const upperDistrictName = excelDistrictName.toUpperCase();
+                  
+                  if (upsDistrictName) {
+                    return upsDistrictName === upperDistrictName || 
+                           upperDistrictName.startsWith(upsDistrictName) ||
+                           upsDistrictName.startsWith(upperDistrictName.split(' ')[0]);
+                  } else {
+                    const normalizedDistrict = upperDistrictName.replace(/\s+/g, '');
+                    return upsCode === normalizedDistrict || normalizedDistrict.startsWith(upsCode);
+                  }
+                }
+              }
+              return false;
+            });
+          } else {
+            // Whole state - include all UPS devices
+            filteredDevices = vizData;
+          }
+        } catch (vizError) {
+          console.error('Error loading UPS visualization data, falling back to status API:', vizError);
+          // Fallback to status API if visualization fails
+          const downResponse = await apiService.getApi().get('/query/objects/status?status=Down');
+          const downMonitors = downResponse.data.result || downResponse.data || [];
+          filteredDevices = downMonitors.filter((monitor: any) => {
+            const name = (monitor['object.name'] || '').toLowerCase();
+            
+            if (selectedDistrict) {
+              const excelDistrictName = normalizeDistrictName(selectedDistrict);
+              const upperName = (monitor['object.name'] || '').toUpperCase();
+              if (name.includes('_ups')) {
+                const upsParts = upperName.split('_UPS');
+                if (upsParts.length > 0) {
+                  const upsCode = upsParts[0].trim();
+                  const upsDistrictName = getDistrictFromUPSCode(upsCode);
+                  const upperDistrictName = excelDistrictName.toUpperCase();
+                  
+                  if (upsDistrictName) {
+                    return upsDistrictName === upperDistrictName || 
+                           upperDistrictName.startsWith(upsDistrictName) ||
+                           upsDistrictName.startsWith(upperDistrictName.split(' ')[0]);
+                  } else {
+                    const normalizedDistrict = upperDistrictName.replace(/\s+/g, '');
+                    return upsCode === normalizedDistrict || normalizedDistrict.startsWith(upsCode);
+                  }
+                }
+              }
+            } else {
+              return name.includes('_ups');
+            }
+            return false;
+          });
+        }
       } else {
         // For other device types, use status API
         const downResponse = await apiService.getApi().get('/query/objects/status?status=Down');
@@ -379,7 +801,14 @@ export const AndhraPradeshMap: React.FC = () => {
                 }
               }
             } else if (selectedDeviceType === 'GPUs') {
-              if (name.includes('gpu') || host.includes('gpu')) {
+              // GPUs: Use Excel district GPU IPs list
+              if ((name.includes('gpu') || host.includes('gpu')) && !name.includes('non_gpu') && !host.includes('non_gpu')) {
+                const monitorIP = monitor['object.ip'] || '';
+                const districtGPUIPs = districtGPUMap[excelDistrictName.toUpperCase()] || [];
+                if (districtGPUIPs.length > 0) {
+                  return districtGPUIPs.includes(monitorIP);
+                }
+                // Fallback to name-based matching if district not found in Excel
                 const upperName = (monitor['object.name'] || '').toUpperCase();
                 const gpuDistrictName = upperName.split(/[_-]/)[0].trim();
                 const upperDistrictName = excelDistrictName.toUpperCase();
@@ -425,7 +854,12 @@ export const AndhraPradeshMap: React.FC = () => {
             } else if (selectedDeviceType === 'APIs') {
               return name.includes('_api/');
             } else if (selectedDeviceType === 'GPUs') {
-              return name.includes('gpu') || host.includes('gpu');
+              // GPUs: Use Excel GPU IPs list for whole state
+              if ((name.includes('gpu') || host.includes('gpu')) && !name.includes('non_gpu') && !host.includes('non_gpu')) {
+                const monitorIP = monitor['object.ip'] || '';
+                return gpuIPs.length > 0 && gpuIPs.includes(monitorIP);
+              }
+              return false;
             } else if (selectedDeviceType === 'UPS') {
               return name.includes('_ups');
             }
@@ -448,7 +882,8 @@ export const AndhraPradeshMap: React.FC = () => {
     downMonitors: any[], 
     deviceType: DeviceType,
     districtIPs: string[] | null, // null means whole state (for cameras)
-    districtName: string | null = null // District name for server filtering (e.g., "EAST GODAVARI")
+    districtName: string | null = null, // District name for server filtering (e.g., "EAST GODAVARI")
+    districtGPUIPs: string[] | null = null // District GPU IPs from Excel (for GPUs)
   ): { up: number; down: number } => {
     let upCount = 0;
     let downCount = 0;
@@ -518,23 +953,16 @@ export const AndhraPradeshMap: React.FC = () => {
           }
         }
       } else if (deviceType === 'GPUs') {
-        // GPUs: name contains "gpu" OR host contains "gpu"
-        if (name.includes('gpu') || host.includes('gpu')) {
-          if (districtName) {
-            // Extract district name from object.name (part before first '_' or '-')
-            const upperName = (monitor['object.name'] || '').toUpperCase();
-            // Split by '_' or '-' and take the first part
-            const gpuDistrictName = upperName.split(/[_-]/)[0].trim();
-            const upperDistrictName = districtName.toUpperCase();
-            // Check if GPU district matches selected district
-            // Handle variations: "KRISHNA" GPU might match "KRISHNA URBAN" district
-            if (gpuDistrictName === upperDistrictName || 
-                upperDistrictName.startsWith(gpuDistrictName) ||
-                gpuDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+        // GPUs: Use Excel IP list - check if monitorIP is in gpuIPs list
+        // Exclude "Non_GPU" from name/host
+        if ((name.includes('gpu') || host.includes('gpu')) && !name.includes('non_gpu') && !host.includes('non_gpu')) {
+          // If district is selected, check if IP is in district GPU IPs
+          if (districtGPUIPs && districtGPUIPs.length > 0) {
+            if (districtGPUIPs.includes(monitorIP)) {
               matches = true;
             }
-          } else {
-            // Whole state: just check for "gpu" keyword
+          } else if (gpuIPs.length > 0 && gpuIPs.includes(monitorIP)) {
+            // Whole state: check if IP is in all GPU IPs
             matches = true;
           }
         }
@@ -645,23 +1073,16 @@ export const AndhraPradeshMap: React.FC = () => {
           }
         }
       } else if (deviceType === 'GPUs') {
-        // GPUs: name contains "gpu" OR host contains "gpu"
-        if (name.includes('gpu') || host.includes('gpu')) {
-          if (districtName) {
-            // Extract district name from object.name (part before first '_' or '-')
-            const upperName = (monitor['object.name'] || '').toUpperCase();
-            // Split by '_' or '-' and take the first part
-            const gpuDistrictName = upperName.split(/[_-]/)[0].trim();
-            const upperDistrictName = districtName.toUpperCase();
-            // Check if GPU district matches selected district
-            // Handle variations: "KRISHNA" GPU might match "KRISHNA URBAN" district
-            if (gpuDistrictName === upperDistrictName || 
-                upperDistrictName.startsWith(gpuDistrictName) ||
-                gpuDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
+        // GPUs: Use Excel IP list - check if monitorIP is in gpuIPs list
+        // Exclude "Non_GPU" from name/host
+        if ((name.includes('gpu') || host.includes('gpu')) && !name.includes('non_gpu') && !host.includes('non_gpu')) {
+          // If district is selected, check if IP is in district GPU IPs
+          if (districtGPUIPs && districtGPUIPs.length > 0) {
+            if (districtGPUIPs.includes(monitorIP)) {
               matches = true;
             }
-          } else {
-            // Whole state: just check for "gpu" keyword
+          } else if (gpuIPs.length > 0 && gpuIPs.includes(monitorIP)) {
+            // Whole state: check if IP is in all GPU IPs
             matches = true;
           }
         }
@@ -706,6 +1127,18 @@ export const AndhraPradeshMap: React.FC = () => {
         downCount++;
       }
     });
+
+    // For GPUs: Use Excel total, calculate up from total - down
+    if (deviceType === 'GPUs') {
+      // If district is selected, use district total; otherwise use all GPUs
+      const totalFromExcel = districtGPUIPs && districtGPUIPs.length > 0 
+        ? districtGPUIPs.length 
+        : gpuIPs.length;
+      // Down count is already calculated from API
+      // Up count = Total - Down
+      const calculatedUp = totalFromExcel - downCount;
+      return { up: Math.max(0, calculatedUp), down: downCount };
+    }
 
     return { up: upCount, down: downCount };
   };
@@ -1360,11 +1793,21 @@ export const AndhraPradeshMap: React.FC = () => {
                   onChange={(e) => setSelectedDeviceType(e.target.value as DeviceType)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="Cameras">Cameras ({deviceTypeCounts.Cameras})</option>
-                  <option value="Servers">Servers ({deviceTypeCounts.Servers})</option>
-                  <option value="APIs">APIs ({deviceTypeCounts.APIs})</option>
-                  <option value="GPUs">GPUs ({deviceTypeCounts.GPUs})</option>
-                  <option value="UPS">UPS ({deviceTypeCounts.UPS})</option>
+                  <option value="Cameras">
+                    Cameras ({selectedDistrict ? districtDeviceTypeCounts.Cameras : deviceTypeCounts.Cameras})
+                  </option>
+                  <option value="Servers">
+                    Servers ({selectedDistrict ? districtDeviceTypeCounts.Servers : deviceTypeCounts.Servers})
+                  </option>
+                  <option value="APIs">
+                    APIs ({selectedDistrict ? districtDeviceTypeCounts.APIs : deviceTypeCounts.APIs})
+                  </option>
+                  <option value="GPUs">
+                    GPUs ({selectedDistrict ? districtDeviceTypeCounts.GPUs : deviceTypeCounts.GPUs})
+                  </option>
+                  <option value="UPS">
+                    UPS ({selectedDistrict ? districtDeviceTypeCounts.UPS : deviceTypeCounts.UPS})
+                  </option>
                 </select>
               </div>
 
@@ -1449,34 +1892,33 @@ export const AndhraPradeshMap: React.FC = () => {
         </div>
       </div>
 
-      {/* Down Devices List Modal */}
+      {/* Down Devices List Right Panel */}
       {showDownList && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-11/12 max-w-4xl max-h-[80vh] flex flex-col">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Down {selectedDeviceType}
-                  {selectedDistrict && ` - ${getDistrictDisplayName(selectedDistrict)}`}
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  Total: {downDevicesList.length} device{downDevicesList.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowDownList(false);
-                  setDownDevicesList([]);
-                }}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-              >
-                ×
-              </button>
+        <div className="fixed right-0 top-0 bottom-0 w-[calc(100%-16rem)] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-300">
+          {/* Panel Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">
+                Down {selectedDeviceType}
+                {selectedDistrict && ` - ${getDistrictDisplayName(selectedDistrict)}`}
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Total: {downDevicesList.length} device{downDevicesList.length !== 1 ? 's' : ''}
+              </p>
             </div>
+            <button
+              onClick={() => {
+                setShowDownList(false);
+                setDownDevicesList([]);
+              }}
+              className="text-gray-400 hover:text-gray-600 text-3xl font-bold hover:bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+            >
+              ×
+            </button>
+          </div>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-4">
+          {/* Panel Body */}
+          <div className="flex-1 overflow-y-auto p-6">
               {loadingDownList ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="text-center">
@@ -1495,31 +1937,41 @@ export const AndhraPradeshMap: React.FC = () => {
                     const monitorName = device.monitor || device['object.name'] || device.name || 'Unknown Device';
                     const monitorIP = device['object.ip'] || '';
                     
-                    // Get timestamp - API returns in milliseconds (1765460363000)
-                    const timestamp = device.timestamp || device['object.timestamp'] || device['event.timestamp'] || device.eventTimestamp;
+                    // For UPS: timestamp is down start time (milliseconds), event.timestamp is last check time (seconds)
+                    // For Cameras: timestamp is in milliseconds, lastTriggered might be in various formats
+                    let timestamp: number | undefined;
+                    let lastCheckTime: number | undefined;
                     
-                    // Get last triggered - check all possible field names from API response
-                    // Look for fields that might contain "trigger", "poll", "update", "modify", "change"
-                    const lastTriggered = device.lastTriggered || 
-                                         device['last.triggered'] || 
-                                         device['object.last.triggered'] || 
-                                         device['event.last.triggered'] || 
-                                         device['object.last.poll.time'] || 
-                                         device['last.poll.time'] || 
-                                         device['lastTriggered'] || 
-                                         device['lastTriggeredTime'] ||
-                                         device['lastPollTime'] ||
-                                         device['object.lastPollTime'] ||
-                                         device['lastUpdateTime'] ||
-                                         device['object.lastUpdateTime'] ||
-                                         device['modification.time'] ||
-                                         device['object.modification.time'];
+                    if (selectedDeviceType === 'UPS') {
+                      // UPS API format: timestamp (ms) = down start, event.timestamp (s) = last check
+                      timestamp = device.timestamp; // Already in milliseconds
+                      lastCheckTime = device['event.timestamp']; // Already in seconds
+                    } else {
+                      // Camera/other format
+                      timestamp = device.timestamp || device['object.timestamp'] || device['event.timestamp'] || device.eventTimestamp;
+                      lastCheckTime = device.lastTriggered || 
+                                     device['last.triggered'] || 
+                                     device['object.last.triggered'] || 
+                                     device['event.last.triggered'] || 
+                                     device['object.last.poll.time'] || 
+                                     device['last.poll.time'] || 
+                                     device['lastTriggered'] || 
+                                     device['lastTriggeredTime'] ||
+                                     device['lastPollTime'] ||
+                                     device['object.lastPollTime'] ||
+                                     device['lastUpdateTime'] ||
+                                     device['object.lastUpdateTime'] ||
+                                     device['modification.time'] ||
+                                     device['object.modification.time'];
+                    }
                     
                     // Debug: log the values to understand the data structure (only first device)
                     if (index === 0) {
                       console.log('Device sample:', {
+                        deviceType: selectedDeviceType,
                         timestamp,
-                        lastTriggered,
+                        lastCheckTime,
+                        eventTimestamp: device['event.timestamp'],
                         allKeys: Object.keys(device),
                         device: device
                       });
@@ -1527,42 +1979,51 @@ export const AndhraPradeshMap: React.FC = () => {
                     
                     // Calculate duration
                     let downDuration = null;
-                    if (timestamp) {
+                    let downStartTime: string | null = null;
+                    let lastCheckTimeStr: string | null = null;
+                    
+                    if (selectedDeviceType === 'UPS' && timestamp && lastCheckTime) {
+                      // UPS: timestamp (ms) = down start, event.timestamp (s) = last check
+                      const timestampSeconds = Math.floor(timestamp / 1000); // Convert ms to seconds
+                      const lastCheckSeconds = lastCheckTime; // Already in seconds
+                      
+                      // Calculate duration: last check - down start
+                      downDuration = formatDurationBetween(timestampSeconds, lastCheckSeconds);
+                      downStartTime = new Date(timestamp).toLocaleString();
+                      lastCheckTimeStr = new Date(lastCheckSeconds * 1000).toLocaleString();
+                    } else if (timestamp) {
+                      // Other device types (Cameras, etc.)
                       // Convert timestamp from milliseconds to seconds
-                      // timestamp is in milliseconds (e.g., 1765460363000)
                       const timestampSeconds = Math.floor(timestamp / 1000);
                       
-                      if (lastTriggered && typeof lastTriggered === 'number') {
-                        // Both values exist - calculate difference: timestamp (old) - lastTriggered (recent)
-                        // Convert lastTriggered from milliseconds to seconds if needed
-                        const lastTriggeredSeconds = lastTriggered > 1e12 
-                          ? Math.floor(lastTriggered / 1000) 
-                          : lastTriggered;
+                      if (lastCheckTime && typeof lastCheckTime === 'number') {
+                        // Both values exist - calculate difference
+                        const lastCheckSeconds = lastCheckTime > 1e12 
+                          ? Math.floor(lastCheckTime / 1000) 
+                          : lastCheckTime;
                         
-                        // timestamp is older, lastTriggered is recent
-                        // Difference: lastTriggered - timestamp (recent - old = positive)
-                        downDuration = formatDurationBetween(timestampSeconds, lastTriggeredSeconds);
+                        downDuration = formatDurationBetween(timestampSeconds, lastCheckSeconds);
+                        downStartTime = new Date(timestamp).toLocaleString();
+                        lastCheckTimeStr = lastCheckSeconds ? new Date(lastCheckSeconds * 1000).toLocaleString() : null;
                       } else {
                         // Only timestamp exists - show time since timestamp
-                        // But if timestamp is in the future, don't show negative duration
                         const currentTime = Math.floor(Date.now() / 1000);
                         const diff = currentTime - timestampSeconds;
                         
                         if (diff < 0) {
-                          // Timestamp is in the future - this might be a creation timestamp, not down time
-                          // Don't show duration or show "N/A"
                           downDuration = null;
                         } else {
-                          // Normal case - show time since timestamp
                           downDuration = formatDuration(timestampSeconds);
                         }
+                        downStartTime = new Date(timestamp).toLocaleString();
                       }
                     }
                     
                     return (
                       <div
                         key={device['object.id'] || device.id || index}
-                        className="bg-red-50 border border-red-200 rounded-lg p-3 hover:bg-red-100 transition-colors"
+                        className="bg-red-50 border border-red-200 rounded-lg p-3 hover:bg-red-100 transition-colors cursor-pointer"
+                        onClick={() => handleDeviceClick(device, monitorIP)}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -1583,14 +2044,24 @@ export const AndhraPradeshMap: React.FC = () => {
                                 ⏱️ Down for: {downDuration}
                               </p>
                             )}
+                            {downStartTime && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                📅 Down Start: {downStartTime}
+                              </p>
+                            )}
+                            {lastCheckTimeStr && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                🔍 Last Check: {lastCheckTimeStr}
+                              </p>
+                            )}
                           </div>
                           <div className="ml-4 flex flex-col items-end">
                             <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded mb-2">
                               Down
                             </span>
-                            {timestamp && (
+                            {device.duration && (
                               <span className="text-xs text-gray-500">
-                                {new Date(timestamp * 1000).toLocaleString()}
+                                Duration: {device.duration}s
                               </span>
                             )}
                           </div>
@@ -1600,7 +2071,294 @@ export const AndhraPradeshMap: React.FC = () => {
                   })}
                 </div>
               )}
+          </div>
+        </div>
+      )}
+
+      {/* Device Mapping Right Panel */}
+      {deviceMappingData && (
+        <div className="fixed right-0 top-0 bottom-0 w-[calc(100%-16rem)] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-300">
+          {/* Panel Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setDeviceMappingData(null);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span className="font-medium">Back</span>
+              </button>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {deviceMappingData.type === 'UPS' ? 'UPS to Cameras Mapping' : 'Camera to UPS Mapping'}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {deviceMappingData.type === 'UPS' 
+                    ? `UPS: ${deviceMappingData.upsName} (${deviceMappingData.upsIP})`
+                    : `Camera: ${deviceMappingData.cameraName} (${deviceMappingData.cameraIP})`}
+                </p>
+              </div>
             </div>
+          </div>
+
+          {/* Panel Body */}
+          <div className="flex-1 overflow-y-auto p-8">
+            {loadingMapping ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-lg text-gray-600">Loading mapping data...</p>
+                </div>
+              </div>
+            ) : deviceMappingData.type === 'UPS' ? (
+              <div className="space-y-6">
+                {/* Tree Structure */}
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 shadow-xl border border-gray-200">
+                  <h4 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Connection Tree
+                  </h4>
+                  
+                  {/* UPS Node */}
+                  <div className="flex justify-center mb-6">
+                    <div className={`relative border-4 rounded-2xl p-6 min-w-[450px] max-w-[600px] transform transition-all hover:scale-105 ${
+                      deviceMappingData.upsStatus === 'Down'
+                        ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-500 shadow-xl'
+                        : 'bg-gradient-to-br from-green-50 to-green-100 border-green-500 shadow-xl'
+                    }`}>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="w-8 h-8 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center shadow-lg">
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-xl text-gray-900 mb-2">{deviceMappingData.upsName}</p>
+                          <p className="text-base text-gray-700 font-medium">IP: {deviceMappingData.upsIP}</p>
+                        </div>
+                        <span className={`px-5 py-2.5 text-base font-bold rounded-xl shadow-md ${
+                          deviceMappingData.upsStatus === 'Down'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-green-600 text-white'
+                        }`}>
+                          {deviceMappingData.upsStatus}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Connection Lines with SVG */}
+                  {deviceMappingData.connectedCameras.length > 0 && (
+                    <div className="flex justify-center mb-6">
+                      <svg width="4" height="60" className="text-gray-400">
+                        <line x1="2" y1="0" x2="2" y2="60" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Camera Nodes */}
+                  {deviceMappingData.connectedCameras.length === 0 ? (
+                    <p className="text-lg text-gray-500 text-center py-8">No cameras mapped to this UPS</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {deviceMappingData.connectedCameras.map((camera: any, idx: number) => (
+                        <div key={idx} className="relative group">
+                          <div className={`border-3 rounded-xl p-5 transition-all hover:shadow-lg ${
+                            camera.status === 'Down'
+                              ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-400'
+                              : camera.status === 'Up'
+                              ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-400'
+                              : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-400'
+                          }`}>
+                            <div className="flex items-start gap-3 mb-3">
+                              <div className="w-5 h-5 rounded-full bg-blue-500 flex-shrink-0 mt-1 shadow-md flex items-center justify-center">
+                                <div className="w-2 h-2 rounded-full bg-white"></div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-base text-gray-900 break-words leading-tight">{camera.name}</p>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-700 ml-8 mb-3 font-medium">IP: {camera.ip}</p>
+                            <div className="ml-8">
+                              <span className={`px-3 py-1.5 text-sm font-bold rounded-lg shadow-sm ${
+                                camera.status === 'Down'
+                                  ? 'bg-red-600 text-white'
+                                  : camera.status === 'Up'
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-gray-600 text-white'
+                              }`}>
+                                {camera.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Reason for Down */}
+                <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-4 border-yellow-500 rounded-2xl p-8 shadow-xl">
+                  <h4 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                    <svg className="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Reason for Down
+                  </h4>
+                  <p className="text-xl text-gray-900 font-bold mb-4 bg-white rounded-lg p-4 border-2 border-yellow-400">{deviceMappingData.reason}</p>
+                  {deviceMappingData.districtTotalCount > 0 && (
+                    <p className="text-base text-gray-700 mt-4 font-semibold">
+                      <span className="text-gray-900">District Status:</span> <span className="text-red-600">{deviceMappingData.districtDownCount}/{deviceMappingData.districtTotalCount}</span> cameras down
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Tree Structure */}
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 shadow-xl border border-gray-200">
+                  <h4 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Connection Tree
+                  </h4>
+                  
+                  {/* UPS Node */}
+                  {deviceMappingData.connectedUPS ? (
+                    <>
+                      <div className="flex justify-center mb-6">
+                        <div className={`relative border-4 rounded-2xl p-6 min-w-[450px] max-w-[600px] transform transition-all hover:scale-105 ${
+                          deviceMappingData.upsStatus === 'Down'
+                            ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-500 shadow-xl'
+                            : deviceMappingData.upsStatus === 'Up'
+                            ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-500 shadow-xl'
+                            : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-500 shadow-xl'
+                        }`}>
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <div className="w-8 h-8 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center shadow-lg">
+                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-bold text-xl text-gray-900 mb-2">{deviceMappingData.upsName}</p>
+                              <p className="text-base text-gray-700 font-medium">IP: {deviceMappingData.connectedUPS}</p>
+                            </div>
+                            <span className={`px-5 py-2.5 text-base font-bold rounded-xl shadow-md ${
+                              deviceMappingData.upsStatus === 'Down'
+                                ? 'bg-red-600 text-white'
+                                : deviceMappingData.upsStatus === 'Up'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-600 text-white'
+                            }`}>
+                              {deviceMappingData.upsStatus}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Connection Line with SVG */}
+                      <div className="flex justify-center mb-6">
+                        <svg width="4" height="60" className="text-gray-400">
+                          <line x1="2" y1="0" x2="2" y2="60" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-lg text-gray-500 text-center py-8">No UPS mapped to this camera</p>
+                  )}
+
+                  {/* Camera Nodes */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {deviceMappingData.allCamerasOnUPS && deviceMappingData.allCamerasOnUPS.length > 0 ? (
+                      deviceMappingData.allCamerasOnUPS.map((camera: any, idx: number) => (
+                        <div key={idx} className={`relative group border-3 rounded-xl p-5 transition-all hover:shadow-lg ${
+                          camera.status === 'Down'
+                            ? camera.isSelected
+                              ? 'bg-gradient-to-br from-red-100 to-red-200 border-red-500 ring-4 ring-red-300 shadow-xl'
+                              : 'bg-gradient-to-br from-red-50 to-red-100 border-red-400'
+                            : camera.status === 'Up'
+                            ? camera.isSelected
+                              ? 'bg-gradient-to-br from-green-100 to-green-200 border-green-500 ring-4 ring-green-300 shadow-xl'
+                              : 'bg-gradient-to-br from-green-50 to-green-100 border-green-400'
+                            : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-400'
+                        }`}>
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="w-5 h-5 rounded-full bg-blue-500 flex-shrink-0 mt-1 shadow-md flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-white"></div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-base text-gray-900 break-words leading-tight">
+                                {camera.name}
+                                {camera.isSelected && <span className="ml-2 text-sm text-blue-600 font-bold">(Selected)</span>}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 ml-8 mb-3 font-medium">IP: {camera.ip}</p>
+                          <div className="ml-8">
+                            <span className={`px-3 py-1.5 text-sm font-bold rounded-lg shadow-sm ${
+                              camera.status === 'Down'
+                                ? 'bg-red-600 text-white'
+                                : camera.status === 'Up'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-600 text-white'
+                            }`}>
+                              {camera.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className={`border-3 rounded-xl p-5 bg-gradient-to-br from-red-50 to-red-100 border-red-400 shadow-md`}>
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-5 h-5 rounded-full bg-blue-500 flex-shrink-0 mt-1 shadow-md flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-white"></div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-base text-gray-900 break-words leading-tight">{deviceMappingData.cameraName}</p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 ml-8 mb-3 font-medium">IP: {deviceMappingData.cameraIP}</p>
+                        <div className="ml-8">
+                          <span className="px-3 py-1.5 text-sm font-bold rounded-lg shadow-sm bg-red-600 text-white">
+                            Down
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Reason for Down */}
+                <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-4 border-yellow-500 rounded-2xl p-8 shadow-xl">
+                  <h4 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                    <svg className="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Reason for Down
+                  </h4>
+                  <p className="text-xl text-gray-900 font-bold mb-4 bg-white rounded-lg p-4 border-2 border-yellow-400">{deviceMappingData.reason}</p>
+                  {deviceMappingData.districtTotalCount > 0 && (
+                    <p className="text-base text-gray-700 mt-4 font-semibold">
+                      <span className="text-gray-900">District Status:</span> <span className="text-red-600">{deviceMappingData.districtDownCount}/{deviceMappingData.districtTotalCount}</span> cameras down
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

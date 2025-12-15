@@ -1,0 +1,965 @@
+{
+  "timestamp": "2025-12-15T12:33:09.054Z",
+  "totalHosts": 20,
+  "district": "all",
+  "hosts": [
+    {
+      "host": "172.30.49.181",
+      "timestamp": "2025-12-15T12:33:08.876Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 7,
+          "memoryUtilization": 3,
+          "memoryUsed": 1702,
+          "memoryTotal": 23034,
+          "temperature": 69
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 2,
+          "memoryUtilization": 1,
+          "memoryUsed": 1702,
+          "memoryTotal": 23034,
+          "temperature": 59
+        }
+      ],
+      "cpu": {
+        "utilization": 3
+      },
+      "memory": {
+        "utilization": 54.61223347610127,
+        "total": 128647,
+        "used": 70257,
+        "free": 24973,
+        "available": 57199
+      }
+    },
+    {
+      "host": "172.30.49.182",
+      "timestamp": "2025-12-15T12:33:09.009Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 69,
+          "memoryUtilization": 22,
+          "memoryUsed": 9344,
+          "memoryTotal": 23034,
+          "temperature": 73
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 62,
+          "memoryUtilization": 20,
+          "memoryUsed": 9377,
+          "memoryTotal": 23034,
+          "temperature": 65
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 31,
+          "memoryUtilization": 9,
+          "memoryUsed": 8591,
+          "memoryTotal": 23034,
+          "temperature": 56
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 19,
+          "memoryUtilization": 6,
+          "memoryUsed": 8560,
+          "memoryTotal": 23034,
+          "temperature": 55
+        }
+      ],
+      "cpu": {
+        "utilization": 32
+      },
+      "memory": {
+        "utilization": 29.469560350724457,
+        "total": 128648,
+        "used": 37912,
+        "free": 86922,
+        "available": 88206
+      }
+    },
+    {
+      "host": "172.30.49.183",
+      "timestamp": "2025-12-15T12:33:08.930Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 22,
+          "memoryUtilization": 6,
+          "memoryUsed": 7170,
+          "memoryTotal": 23034,
+          "temperature": 71
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 9,
+          "memoryUtilization": 2,
+          "memoryUsed": 6812,
+          "memoryTotal": 23034,
+          "temperature": 62
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 26,
+          "memoryUtilization": 8,
+          "memoryUsed": 6721,
+          "memoryTotal": 23034,
+          "temperature": 60
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 9,
+          "memoryUtilization": 2,
+          "memoryUsed": 6679,
+          "memoryTotal": 23034,
+          "temperature": 55
+        }
+      ],
+      "cpu": {
+        "utilization": 14
+      },
+      "memory": {
+        "utilization": 18.993058524489495,
+        "total": 128647,
+        "used": 24434,
+        "free": 101614,
+        "available": 101918
+      }
+    },
+    {
+      "host": "172.30.49.184",
+      "timestamp": "2025-12-15T12:33:08.964Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 99,
+          "memoryUtilization": 11,
+          "memoryUsed": 12937,
+          "memoryTotal": 23034,
+          "temperature": 70
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4257,
+          "memoryTotal": 23034,
+          "temperature": 56
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4257,
+          "memoryTotal": 23034,
+          "temperature": 49
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4257,
+          "memoryTotal": 23034,
+          "temperature": 47
+        }
+      ],
+      "cpu": {
+        "utilization": 5
+      },
+      "memory": {
+        "utilization": 17.18501014403756,
+        "total": 128647,
+        "used": 22108,
+        "free": 47962,
+        "available": 103952
+      }
+    },
+    {
+      "host": "172.30.49.185",
+      "timestamp": "2025-12-15T12:33:08.908Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 12,
+          "memoryUtilization": 8,
+          "memoryUsed": 3155,
+          "memoryTotal": 23034,
+          "temperature": 71
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 11,
+          "memoryUtilization": 6,
+          "memoryUsed": 3045,
+          "memoryTotal": 23034,
+          "temperature": 64
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 17,
+          "memoryUtilization": 13,
+          "memoryUsed": 3227,
+          "memoryTotal": 23034,
+          "temperature": 63
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 50,
+          "memoryUtilization": 15,
+          "memoryUsed": 5499,
+          "memoryTotal": 23034,
+          "temperature": 62
+        }
+      ],
+      "cpu": {
+        "utilization": 3
+      },
+      "memory": {
+        "utilization": 25.31662299899707,
+        "total": 128623,
+        "used": 32563,
+        "free": 93490,
+        "available": 94217
+      }
+    },
+    {
+      "host": "172.30.114.238",
+      "timestamp": "2025-12-15T12:33:08.959Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 14,
+          "memoryTotal": 23034,
+          "temperature": 35
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 14,
+          "memoryTotal": 23034,
+          "temperature": 32
+        }
+      ],
+      "cpu": {
+        "utilization": 0
+      },
+      "memory": {
+        "utilization": 1.5554190925555977,
+        "total": 128647,
+        "used": 2001,
+        "free": 116554,
+        "available": 125594
+      }
+    },
+    {
+      "host": "172.30.114.239",
+      "timestamp": "2025-12-15T12:33:09.013Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4632,
+          "memoryTotal": 23034,
+          "temperature": 61
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4632,
+          "memoryTotal": 23034,
+          "temperature": 56
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4536,
+          "memoryTotal": 23034,
+          "temperature": 52
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4658,
+          "memoryTotal": 23034,
+          "temperature": 50
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 12.88875760802817,
+        "total": 128647,
+        "used": 16581,
+        "free": 68335,
+        "available": 109736
+      }
+    },
+    {
+      "host": "172.30.114.240",
+      "timestamp": "2025-12-15T12:33:09.028Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5061,
+          "memoryTotal": 23034,
+          "temperature": 69
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4987,
+          "memoryTotal": 23034,
+          "temperature": 63
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4580,
+          "memoryTotal": 23034,
+          "temperature": 57
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4534,
+          "memoryTotal": 23034,
+          "temperature": 53
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 23.999005029266133,
+        "total": 128647,
+        "used": 30874,
+        "free": 53762,
+        "available": 95427
+      }
+    },
+    {
+      "host": "172.30.114.241",
+      "timestamp": "2025-12-15T12:33:08.964Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4594,
+          "memoryTotal": 23034,
+          "temperature": 70
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4666,
+          "memoryTotal": 23034,
+          "temperature": 67
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4257,
+          "memoryTotal": 23034,
+          "temperature": 59
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4257,
+          "memoryTotal": 23034,
+          "temperature": 55
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 14.873257829564624,
+        "total": 128647,
+        "used": 19134,
+        "free": 65958,
+        "available": 107199
+      }
+    },
+    {
+      "host": "172.30.114.242",
+      "timestamp": "2025-12-15T12:33:09.014Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4542,
+          "memoryTotal": 23034,
+          "temperature": 69
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4640,
+          "memoryTotal": 23034,
+          "temperature": 61
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4542,
+          "memoryTotal": 23034,
+          "temperature": 57
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4255,
+          "memoryTotal": 23034,
+          "temperature": 54
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 10.510933018259268,
+        "total": 128647,
+        "used": 13522,
+        "free": 71021,
+        "available": 112801
+      }
+    },
+    {
+      "host": "172.30.114.243",
+      "timestamp": "2025-12-15T12:33:09.049Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 327,
+          "memoryTotal": 23034,
+          "temperature": 60
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 25,
+          "memoryUtilization": 1,
+          "memoryUsed": 11968,
+          "memoryTotal": 23034,
+          "temperature": 77
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 11333,
+          "memoryTotal": 23034,
+          "temperature": 61
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 11297,
+          "memoryTotal": 23034,
+          "temperature": 62
+        }
+      ],
+      "cpu": {
+        "utilization": 10
+      },
+      "memory": {
+        "utilization": 9.831998353762469,
+        "total": 257557,
+        "used": 25323,
+        "free": 11023,
+        "available": 229587
+      }
+    },
+    {
+      "host": "172.30.114.244",
+      "timestamp": "2025-12-15T12:33:09.031Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5196,
+          "memoryTotal": 23034,
+          "temperature": 69
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5196,
+          "memoryTotal": 23034,
+          "temperature": 63
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5100,
+          "memoryTotal": 23034,
+          "temperature": 58
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4813,
+          "memoryTotal": 23034,
+          "temperature": 55
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 12.612808693556786,
+        "total": 128647,
+        "used": 16226,
+        "free": 68698,
+        "available": 110035
+      }
+    },
+    {
+      "host": "172.30.114.245",
+      "timestamp": "2025-12-15T12:33:09.002Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4907,
+          "memoryTotal": 23034,
+          "temperature": 68
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4524,
+          "memoryTotal": 23034,
+          "temperature": 62
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4524,
+          "memoryTotal": 23034,
+          "temperature": 57
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4640,
+          "memoryTotal": 23034,
+          "temperature": 55
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 11.590631728683919,
+        "total": 128647,
+        "used": 14911,
+        "free": 69885,
+        "available": 111379
+      }
+    },
+    {
+      "host": "172.30.114.246",
+      "timestamp": "2025-12-15T12:33:09.051Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5472,
+          "memoryTotal": 23034,
+          "temperature": 66
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5360,
+          "memoryTotal": 23034,
+          "temperature": 59
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5224,
+          "memoryTotal": 23034,
+          "temperature": 54
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5388,
+          "memoryTotal": 23034,
+          "temperature": 50
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 28.089267530529277,
+        "total": 128647,
+        "used": 36136,
+        "free": 48434,
+        "available": 90109
+      }
+    },
+    {
+      "host": "172.30.114.247",
+      "timestamp": "2025-12-15T12:33:09.024Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4933,
+          "memoryTotal": 23034,
+          "temperature": 66
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4594,
+          "memoryTotal": 23034,
+          "temperature": 55
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4640,
+          "memoryTotal": 23034,
+          "temperature": 51
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4598,
+          "memoryTotal": 23034,
+          "temperature": 49
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 17.628083048963443,
+        "total": 128647,
+        "used": 22678,
+        "free": 62279,
+        "available": 103631
+      }
+    },
+    {
+      "host": "172.30.114.248",
+      "timestamp": "2025-12-15T12:33:09.031Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 7127,
+          "memoryTotal": 23034,
+          "temperature": 63
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 7379,
+          "memoryTotal": 23034,
+          "temperature": 55
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 6915,
+          "memoryTotal": 23034,
+          "temperature": 51
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 7031,
+          "memoryTotal": 23034,
+          "temperature": 48
+        }
+      ],
+      "cpu": {
+        "utilization": 2
+      },
+      "memory": {
+        "utilization": 18.931650174508537,
+        "total": 128647,
+        "used": 24355,
+        "free": 61816,
+        "available": 101698
+      }
+    },
+    {
+      "host": "172.30.114.249",
+      "timestamp": "2025-12-15T12:33:08.996Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5070,
+          "memoryTotal": 23034,
+          "temperature": 61
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 5172,
+          "memoryTotal": 23034,
+          "temperature": 54
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4943,
+          "memoryTotal": 23034,
+          "temperature": 49
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 4801,
+          "memoryTotal": 23034,
+          "temperature": 47
+        }
+      ],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 17.15780391303334,
+        "total": 128647,
+        "used": 22073,
+        "free": 62322,
+        "available": 104194
+      }
+    },
+    {
+      "host": "172.30.114.250",
+      "timestamp": "2025-12-15T12:33:09.054Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 12,
+          "memoryUtilization": 8,
+          "memoryUsed": 3175,
+          "memoryTotal": 23034,
+          "temperature": 67
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 14,
+          "memoryUtilization": 11,
+          "memoryUsed": 3077,
+          "memoryTotal": 23034,
+          "temperature": 70
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 6,
+          "memoryUtilization": 2,
+          "memoryUsed": 2238,
+          "memoryTotal": 23034,
+          "temperature": 51
+        },
+        {
+          "index": 3,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 0,
+          "memoryUtilization": 0,
+          "memoryUsed": 1352,
+          "memoryTotal": 23034,
+          "temperature": 48
+        }
+      ],
+      "cpu": {
+        "utilization": 2
+      },
+      "memory": {
+        "utilization": 18.344308560677327,
+        "total": 128623,
+        "used": 23595,
+        "free": 83822,
+        "available": 102928
+      }
+    },
+    {
+      "host": "172.30.114.251",
+      "timestamp": "2025-12-15T12:33:09.033Z",
+      "gpu": [],
+      "cpu": {
+        "utilization": 1
+      },
+      "memory": {
+        "utilization": 3.9378769976991483,
+        "total": 128648,
+        "used": 5066,
+        "free": 100777,
+        "available": 122534
+      }
+    },
+    {
+      "host": "172.30.114.252",
+      "timestamp": "2025-12-15T12:33:09.030Z",
+      "gpu": [
+        {
+          "index": 0,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 8,
+          "memoryUtilization": 4,
+          "memoryUsed": 3107,
+          "memoryTotal": 23034,
+          "temperature": 62
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 17,
+          "memoryUtilization": 14,
+          "memoryUsed": 3011,
+          "memoryTotal": 23034,
+          "temperature": 72
+        },
+        {
+          "index": 2,
+          "name": "NVIDIA L4",
+          "gpuUtilization": 11,
+          "memoryUtilization": 8,
+          "memoryUsed": 4055,
+          "memoryTotal": 23034,
+          "temperature": 68
+        }
+      ],
+      "cpu": {
+        "utilization": 2
+      },
+      "memory": {
+        "utilization": 24.197335074708086,
+        "total": 128634,
+        "used": 31126,
+        "free": 69407,
+        "available": 95392
+      }
+    }
+  ]
+}

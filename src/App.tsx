@@ -13,6 +13,9 @@ import { Performance } from './pages/Performance';
 import { WidgetDetail } from './pages/WidgetDetail';
 import { Analytics } from './pages/Analytics';
 import { Alerts } from './pages/Alerts';
+import { ServerUtilization } from './pages/ServerUtilization';
+import { LiveUtilization } from './pages/LiveUtilization';
+import { CpuUtilization } from './pages/CpuUtilization';
 
 function App() {
   return (
@@ -116,6 +119,36 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Alerts />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/server-utilization"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ServerUtilization />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/live-utilization"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LiveUtilization />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cpu-utilization"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <CpuUtilization />
                 </Layout>
               </ProtectedRoute>
             }

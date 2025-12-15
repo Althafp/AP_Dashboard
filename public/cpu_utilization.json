@@ -1,0 +1,1874 @@
+{
+  "timestamp": "2025-12-15T12:34:26.801Z",
+  "totalHosts": 93,
+  "hosts": [
+    {
+      "host": "172.30.49.173",
+      "cpuUtilization": 11,
+      "memoryUtilization": 25.530024120858197,
+      "memoryTotal": 7877,
+      "memoryUsed": 2011,
+      "memoryFree": 139,
+      "memoryAvailable": 5557,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.174",
+      "cpuUtilization": 94,
+      "memoryUtilization": 60.56874444585502,
+      "memoryTotal": 7877,
+      "memoryUsed": 4771,
+      "memoryFree": 117,
+      "memoryAvailable": 2798,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.175",
+      "cpuUtilization": 0,
+      "memoryUtilization": 0,
+      "memoryTotal": 0,
+      "memoryUsed": 0,
+      "memoryFree": 0,
+      "memoryAvailable": 0,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.176",
+      "cpuUtilization": 16,
+      "memoryUtilization": 37.04456011171766,
+      "memoryTotal": 7877,
+      "memoryUsed": 2918,
+      "memoryFree": 991,
+      "memoryAvailable": 4631,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.177",
+      "cpuUtilization": 26,
+      "memoryUtilization": 31.217468579408404,
+      "memoryTotal": 7877,
+      "memoryUsed": 2459,
+      "memoryFree": 130,
+      "memoryAvailable": 5107,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.178",
+      "cpuUtilization": 17,
+      "memoryUtilization": 34.03580043163641,
+      "memoryTotal": 7877,
+      "memoryUsed": 2681,
+      "memoryFree": 121,
+      "memoryAvailable": 4881,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.179",
+      "cpuUtilization": 42,
+      "memoryUtilization": 56.45550336422496,
+      "memoryTotal": 7877,
+      "memoryUsed": 4447,
+      "memoryFree": 117,
+      "memoryAvailable": 3115,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.180",
+      "cpuUtilization": 31,
+      "memoryUtilization": 41.906817316237145,
+      "memoryTotal": 7877,
+      "memoryUsed": 3301,
+      "memoryFree": 136,
+      "memoryAvailable": 4262,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.146",
+      "cpuUtilization": 96,
+      "memoryUtilization": 84.54995556684017,
+      "memoryTotal": 7877,
+      "memoryUsed": 6660,
+      "memoryFree": 129,
+      "memoryAvailable": 906,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.147",
+      "cpuUtilization": 4,
+      "memoryUtilization": 24.42554271930938,
+      "memoryTotal": 7877,
+      "memoryUsed": 1924,
+      "memoryFree": 1078,
+      "memoryAvailable": 5551,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.148",
+      "cpuUtilization": 97,
+      "memoryUtilization": 64.83432778976767,
+      "memoryTotal": 7877,
+      "memoryUsed": 5107,
+      "memoryFree": 172,
+      "memoryAvailable": 2458,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.152",
+      "cpuUtilization": 10,
+      "memoryUtilization": 30.709661038466425,
+      "memoryTotal": 7877,
+      "memoryUsed": 2419,
+      "memoryFree": 124,
+      "memoryAvailable": 5139,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.153",
+      "cpuUtilization": 93,
+      "memoryUtilization": 59.5150437984004,
+      "memoryTotal": 7877,
+      "memoryUsed": 4688,
+      "memoryFree": 145,
+      "memoryAvailable": 2869,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.154",
+      "cpuUtilization": 54,
+      "memoryUtilization": 53.281706233337566,
+      "memoryTotal": 7877,
+      "memoryUsed": 4197,
+      "memoryFree": 135,
+      "memoryAvailable": 3361,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.155",
+      "cpuUtilization": 51,
+      "memoryUtilization": 48.17824044687063,
+      "memoryTotal": 7877,
+      "memoryUsed": 3795,
+      "memoryFree": 131,
+      "memoryAvailable": 3762,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.156",
+      "cpuUtilization": 8,
+      "memoryUtilization": 30.12568236638314,
+      "memoryTotal": 7877,
+      "memoryUsed": 2373,
+      "memoryFree": 116,
+      "memoryAvailable": 5185,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.157",
+      "cpuUtilization": 17,
+      "memoryUtilization": 38.18712707883712,
+      "memoryTotal": 7877,
+      "memoryUsed": 3008,
+      "memoryFree": 770,
+      "memoryAvailable": 4539,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.158",
+      "cpuUtilization": 27,
+      "memoryUtilization": 37.98400406246032,
+      "memoryTotal": 7877,
+      "memoryUsed": 2992,
+      "memoryFree": 169,
+      "memoryAvailable": 4560,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.159",
+      "cpuUtilization": 96,
+      "memoryUtilization": 65.6595150437984,
+      "memoryTotal": 7877,
+      "memoryUsed": 5172,
+      "memoryFree": 123,
+      "memoryAvailable": 2381,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.160",
+      "cpuUtilization": 2,
+      "memoryUtilization": 65.30404976513901,
+      "memoryTotal": 7877,
+      "memoryUsed": 5144,
+      "memoryFree": 122,
+      "memoryAvailable": 2421,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.161",
+      "cpuUtilization": 3,
+      "memoryUtilization": 35.368795226609116,
+      "memoryTotal": 7877,
+      "memoryUsed": 2786,
+      "memoryFree": 202,
+      "memoryAvailable": 4581,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.162",
+      "cpuUtilization": 97,
+      "memoryUtilization": 68.92217849435063,
+      "memoryTotal": 7877,
+      "memoryUsed": 5429,
+      "memoryFree": 142,
+      "memoryAvailable": 2148,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.163",
+      "cpuUtilization": 5,
+      "memoryUtilization": 91.34188142693918,
+      "memoryTotal": 7877,
+      "memoryUsed": 7195,
+      "memoryFree": 123,
+      "memoryAvailable": 384,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.164",
+      "cpuUtilization": 96,
+      "memoryUtilization": 88.43468325504634,
+      "memoryTotal": 7877,
+      "memoryUsed": 6966,
+      "memoryFree": 116,
+      "memoryAvailable": 628,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.165",
+      "cpuUtilization": 31,
+      "memoryUtilization": 61.063856798273456,
+      "memoryTotal": 7877,
+      "memoryUsed": 4810,
+      "memoryFree": 140,
+      "memoryAvailable": 2655,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.166",
+      "cpuUtilization": 0,
+      "memoryUtilization": 0,
+      "memoryTotal": 0,
+      "memoryUsed": 0,
+      "memoryFree": 0,
+      "memoryAvailable": 0,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.167",
+      "cpuUtilization": 1,
+      "memoryUtilization": 10.803605433540687,
+      "memoryTotal": 7877,
+      "memoryUsed": 851,
+      "memoryFree": 1505,
+      "memoryAvailable": 6697,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.168",
+      "cpuUtilization": 95,
+      "memoryUtilization": 65.98958994541069,
+      "memoryTotal": 7877,
+      "memoryUsed": 5198,
+      "memoryFree": 140,
+      "memoryAvailable": 2364,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.169",
+      "cpuUtilization": 7,
+      "memoryUtilization": 28.65304049765139,
+      "memoryTotal": 7877,
+      "memoryUsed": 2257,
+      "memoryFree": 125,
+      "memoryAvailable": 5304,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.170",
+      "cpuUtilization": 0,
+      "memoryUtilization": 0,
+      "memoryTotal": 0,
+      "memoryUsed": 0,
+      "memoryFree": 0,
+      "memoryAvailable": 0,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.49.189",
+      "cpuUtilization": 0,
+      "memoryUtilization": 0,
+      "memoryTotal": 0,
+      "memoryUsed": 0,
+      "memoryFree": 0,
+      "memoryAvailable": 0,
+      "district": "guntur"
+    },
+    {
+      "host": "172.30.114.218",
+      "cpuUtilization": 95,
+      "memoryUtilization": 62.44763234734035,
+      "memoryTotal": 7877,
+      "memoryUsed": 4919,
+      "memoryFree": 127,
+      "memoryAvailable": 2649,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.219",
+      "cpuUtilization": 99,
+      "memoryUtilization": 84.23257585375143,
+      "memoryTotal": 7877,
+      "memoryUsed": 6635,
+      "memoryFree": 130,
+      "memoryAvailable": 938,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.220",
+      "cpuUtilization": 11,
+      "memoryUtilization": 37.831661800177734,
+      "memoryTotal": 7877,
+      "memoryUsed": 2980,
+      "memoryFree": 124,
+      "memoryAvailable": 4537,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.221",
+      "cpuUtilization": 8,
+      "memoryUtilization": 24.412847530785832,
+      "memoryTotal": 7877,
+      "memoryUsed": 1923,
+      "memoryFree": 122,
+      "memoryAvailable": 5600,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.222",
+      "cpuUtilization": 12,
+      "memoryUtilization": 36.232068046210486,
+      "memoryTotal": 7877,
+      "memoryUsed": 2854,
+      "memoryFree": 132,
+      "memoryAvailable": 4661,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.223",
+      "cpuUtilization": 7,
+      "memoryUtilization": 37.273073505141554,
+      "memoryTotal": 7877,
+      "memoryUsed": 2936,
+      "memoryFree": 3016,
+      "memoryAvailable": 4624,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.224",
+      "cpuUtilization": 14,
+      "memoryUtilization": 22.241970293258856,
+      "memoryTotal": 7877,
+      "memoryUsed": 1752,
+      "memoryFree": 119,
+      "memoryAvailable": 5807,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.225",
+      "cpuUtilization": 5,
+      "memoryUtilization": 45.728069061825565,
+      "memoryTotal": 7877,
+      "memoryUsed": 3602,
+      "memoryFree": 126,
+      "memoryAvailable": 3962,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.226",
+      "cpuUtilization": 20,
+      "memoryUtilization": 39.71054970166307,
+      "memoryTotal": 7877,
+      "memoryUsed": 3128,
+      "memoryFree": 132,
+      "memoryAvailable": 4437,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.227",
+      "cpuUtilization": 8,
+      "memoryUtilization": 26.27904024374762,
+      "memoryTotal": 7877,
+      "memoryUsed": 2070,
+      "memoryFree": 120,
+      "memoryAvailable": 5480,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.228",
+      "cpuUtilization": 8,
+      "memoryUtilization": 27.878633997714864,
+      "memoryTotal": 7877,
+      "memoryUsed": 2196,
+      "memoryFree": 140,
+      "memoryAvailable": 5352,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.229",
+      "cpuUtilization": 9,
+      "memoryUtilization": 32.42351148914561,
+      "memoryTotal": 7877,
+      "memoryUsed": 2554,
+      "memoryFree": 125,
+      "memoryAvailable": 4959,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.230",
+      "cpuUtilization": 10,
+      "memoryUtilization": 52.62155643011299,
+      "memoryTotal": 7877,
+      "memoryUsed": 4145,
+      "memoryFree": 142,
+      "memoryAvailable": 3420,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.231",
+      "cpuUtilization": 11,
+      "memoryUtilization": 29.26240954678177,
+      "memoryTotal": 7877,
+      "memoryUsed": 2305,
+      "memoryFree": 119,
+      "memoryAvailable": 5258,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.232",
+      "cpuUtilization": 18,
+      "memoryUtilization": 38.52989716897296,
+      "memoryTotal": 7877,
+      "memoryUsed": 3035,
+      "memoryFree": 129,
+      "memoryAvailable": 4530,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.233",
+      "cpuUtilization": 74,
+      "memoryUtilization": 54.65278659388092,
+      "memoryTotal": 7877,
+      "memoryUsed": 4305,
+      "memoryFree": 119,
+      "memoryAvailable": 3232,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.234",
+      "cpuUtilization": 80,
+      "memoryUtilization": 56.5697600609369,
+      "memoryTotal": 7877,
+      "memoryUsed": 4456,
+      "memoryFree": 135,
+      "memoryAvailable": 3073,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.235",
+      "cpuUtilization": 28,
+      "memoryUtilization": 42.99860352926241,
+      "memoryTotal": 7877,
+      "memoryUsed": 3387,
+      "memoryFree": 120,
+      "memoryAvailable": 4178,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.236",
+      "cpuUtilization": 27,
+      "memoryUtilization": 33.98501967754221,
+      "memoryTotal": 7877,
+      "memoryUsed": 2677,
+      "memoryFree": 132,
+      "memoryAvailable": 4889,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.176",
+      "cpuUtilization": 9,
+      "memoryUtilization": 40.2564428081757,
+      "memoryTotal": 7877,
+      "memoryUsed": 3171,
+      "memoryFree": 132,
+      "memoryAvailable": 4393,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.177",
+      "cpuUtilization": 0,
+      "memoryUtilization": 0,
+      "memoryTotal": 0,
+      "memoryUsed": 0,
+      "memoryFree": 0,
+      "memoryAvailable": 0,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.178",
+      "cpuUtilization": 8,
+      "memoryUtilization": 23.85425923574965,
+      "memoryTotal": 7877,
+      "memoryUsed": 1879,
+      "memoryFree": 148,
+      "memoryAvailable": 5637,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.179",
+      "cpuUtilization": 11,
+      "memoryUtilization": 30.100291989336043,
+      "memoryTotal": 7877,
+      "memoryUsed": 2371,
+      "memoryFree": 194,
+      "memoryAvailable": 5192,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.180",
+      "cpuUtilization": 9,
+      "memoryUtilization": 50.095213913926614,
+      "memoryTotal": 7877,
+      "memoryUsed": 3946,
+      "memoryFree": 119,
+      "memoryAvailable": 3588,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.181",
+      "cpuUtilization": 51,
+      "memoryUtilization": 55.63031611019424,
+      "memoryTotal": 7877,
+      "memoryUsed": 4382,
+      "memoryFree": 133,
+      "memoryAvailable": 3174,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.182",
+      "cpuUtilization": 95,
+      "memoryUtilization": 65.9388091913165,
+      "memoryTotal": 7877,
+      "memoryUsed": 5194,
+      "memoryFree": 122,
+      "memoryAvailable": 2358,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.183",
+      "cpuUtilization": 13,
+      "memoryUtilization": 36.25745842325759,
+      "memoryTotal": 7877,
+      "memoryUsed": 2856,
+      "memoryFree": 409,
+      "memoryAvailable": 4684,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.184",
+      "cpuUtilization": 8,
+      "memoryUtilization": 40.4595658245525,
+      "memoryTotal": 7877,
+      "memoryUsed": 3187,
+      "memoryFree": 128,
+      "memoryAvailable": 4342,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.185",
+      "cpuUtilization": 1,
+      "memoryUtilization": 53.68795226609115,
+      "memoryTotal": 7877,
+      "memoryUsed": 4229,
+      "memoryFree": 197,
+      "memoryAvailable": 3318,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.186",
+      "cpuUtilization": 28,
+      "memoryUtilization": 32.321949980957214,
+      "memoryTotal": 7877,
+      "memoryUsed": 2546,
+      "memoryFree": 118,
+      "memoryAvailable": 5020,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.187",
+      "cpuUtilization": 32,
+      "memoryUtilization": 41.7163894883839,
+      "memoryTotal": 7877,
+      "memoryUsed": 3286,
+      "memoryFree": 116,
+      "memoryAvailable": 4271,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.188",
+      "cpuUtilization": 96,
+      "memoryUtilization": 77.28830773136981,
+      "memoryTotal": 7877,
+      "memoryUsed": 6088,
+      "memoryFree": 1383,
+      "memoryAvailable": 1473,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.189",
+      "cpuUtilization": 10,
+      "memoryUtilization": 36.16859210359274,
+      "memoryTotal": 7877,
+      "memoryUsed": 2849,
+      "memoryFree": 129,
+      "memoryAvailable": 4678,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.190",
+      "cpuUtilization": 33,
+      "memoryUtilization": 45.004443315983245,
+      "memoryTotal": 7877,
+      "memoryUsed": 3545,
+      "memoryFree": 128,
+      "memoryAvailable": 4023,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.191",
+      "cpuUtilization": 10,
+      "memoryUtilization": 29.79560746477085,
+      "memoryTotal": 7877,
+      "memoryUsed": 2347,
+      "memoryFree": 114,
+      "memoryAvailable": 5181,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.192",
+      "cpuUtilization": 7,
+      "memoryUtilization": 59.15957851974102,
+      "memoryTotal": 7877,
+      "memoryUsed": 4660,
+      "memoryFree": 179,
+      "memoryAvailable": 2886,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.193",
+      "cpuUtilization": 17,
+      "memoryUtilization": 44.623587660276755,
+      "memoryTotal": 7877,
+      "memoryUsed": 3515,
+      "memoryFree": 150,
+      "memoryAvailable": 3883,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.194",
+      "cpuUtilization": 15,
+      "memoryUtilization": 42.66852862765012,
+      "memoryTotal": 7877,
+      "memoryUsed": 3361,
+      "memoryFree": 188,
+      "memoryAvailable": 4030,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.195",
+      "cpuUtilization": 14,
+      "memoryUtilization": 38.009394439507425,
+      "memoryTotal": 7877,
+      "memoryUsed": 2994,
+      "memoryFree": 405,
+      "memoryAvailable": 4393,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.196",
+      "cpuUtilization": 8,
+      "memoryUtilization": 35.26723371842072,
+      "memoryTotal": 7877,
+      "memoryUsed": 2778,
+      "memoryFree": 857,
+      "memoryAvailable": 4769,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.197",
+      "cpuUtilization": 8,
+      "memoryUtilization": 53.764123397232446,
+      "memoryTotal": 7877,
+      "memoryUsed": 4235,
+      "memoryFree": 179,
+      "memoryAvailable": 3260,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.198",
+      "cpuUtilization": 8,
+      "memoryUtilization": 38.771105750920405,
+      "memoryTotal": 7877,
+      "memoryUsed": 3054,
+      "memoryFree": 517,
+      "memoryAvailable": 4295,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.199",
+      "cpuUtilization": 6,
+      "memoryUtilization": 36.49866700520503,
+      "memoryTotal": 7877,
+      "memoryUsed": 2875,
+      "memoryFree": 841,
+      "memoryAvailable": 4536,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.161",
+      "cpuUtilization": 8,
+      "memoryUtilization": 40.37069950488765,
+      "memoryTotal": 7877,
+      "memoryUsed": 3180,
+      "memoryFree": 227,
+      "memoryAvailable": 4335,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.201",
+      "cpuUtilization": 7,
+      "memoryUtilization": 33.388345816935384,
+      "memoryTotal": 7877,
+      "memoryUsed": 2630,
+      "memoryFree": 1174,
+      "memoryAvailable": 4871,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.202",
+      "cpuUtilization": 9,
+      "memoryUtilization": 44.877491430747746,
+      "memoryTotal": 7877,
+      "memoryUsed": 3535,
+      "memoryFree": 200,
+      "memoryAvailable": 3973,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.162",
+      "cpuUtilization": 0,
+      "memoryUtilization": 0,
+      "memoryTotal": 0,
+      "memoryUsed": 0,
+      "memoryFree": 0,
+      "memoryAvailable": 0,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.203",
+      "cpuUtilization": 9,
+      "memoryUtilization": 41.17049638187127,
+      "memoryTotal": 7877,
+      "memoryUsed": 3243,
+      "memoryFree": 464,
+      "memoryAvailable": 4188,
+      "district": "krishna-urban"
+    },
+    {
+      "host": "172.30.114.204",
+      "cpuUtilization": 4,
+      "memoryUtilization": 54.28462612669798,
+      "memoryTotal": 7877,
+      "memoryUsed": 4276,
+      "memoryFree": 185,
+      "memoryAvailable": 3291,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.205",
+      "cpuUtilization": 0,
+      "memoryUtilization": 14.739113875841056,
+      "memoryTotal": 7877,
+      "memoryUsed": 1161,
+      "memoryFree": 3827,
+      "memoryAvailable": 6384,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.206",
+      "cpuUtilization": 8,
+      "memoryUtilization": 43.60797257839279,
+      "memoryTotal": 7877,
+      "memoryUsed": 3435,
+      "memoryFree": 120,
+      "memoryAvailable": 4130,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.207",
+      "cpuUtilization": 9,
+      "memoryUtilization": 50.12060429097372,
+      "memoryTotal": 7877,
+      "memoryUsed": 3948,
+      "memoryFree": 123,
+      "memoryAvailable": 3617,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.208",
+      "cpuUtilization": 32,
+      "memoryUtilization": 41.88142693919005,
+      "memoryTotal": 7877,
+      "memoryUsed": 3299,
+      "memoryFree": 2662,
+      "memoryAvailable": 4264,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.209",
+      "cpuUtilization": 11,
+      "memoryUtilization": 20.794718801574202,
+      "memoryTotal": 7877,
+      "memoryUsed": 1638,
+      "memoryFree": 120,
+      "memoryAvailable": 5928,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.210",
+      "cpuUtilization": 25,
+      "memoryUtilization": 52.83737463501333,
+      "memoryTotal": 7877,
+      "memoryUsed": 4162,
+      "memoryFree": 124,
+      "memoryAvailable": 3402,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.211",
+      "cpuUtilization": 7,
+      "memoryUtilization": 36.13050653802209,
+      "memoryTotal": 7877,
+      "memoryUsed": 2846,
+      "memoryFree": 138,
+      "memoryAvailable": 4719,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.212",
+      "cpuUtilization": 8,
+      "memoryUtilization": 29.135457661546273,
+      "memoryTotal": 7877,
+      "memoryUsed": 2295,
+      "memoryFree": 125,
+      "memoryAvailable": 5244,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.213",
+      "cpuUtilization": 3,
+      "memoryUtilization": 26.152088358512128,
+      "memoryTotal": 7877,
+      "memoryUsed": 2060,
+      "memoryFree": 264,
+      "memoryAvailable": 5498,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.214",
+      "cpuUtilization": 9,
+      "memoryUtilization": 25.504633743811095,
+      "memoryTotal": 7877,
+      "memoryUsed": 2009,
+      "memoryFree": 127,
+      "memoryAvailable": 5526,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.215",
+      "cpuUtilization": 0,
+      "memoryUtilization": 14.63755236765266,
+      "memoryTotal": 7877,
+      "memoryUsed": 1153,
+      "memoryFree": 4595,
+      "memoryAvailable": 6356,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.216",
+      "cpuUtilization": 7,
+      "memoryUtilization": 35.051415513520375,
+      "memoryTotal": 7877,
+      "memoryUsed": 2761,
+      "memoryFree": 611,
+      "memoryAvailable": 4805,
+      "district": "krishna-rural"
+    },
+    {
+      "host": "172.30.114.217",
+      "cpuUtilization": 41,
+      "memoryUtilization": 52.97702170877238,
+      "memoryTotal": 7877,
+      "memoryUsed": 4173,
+      "memoryFree": 953,
+      "memoryAvailable": 3362,
+      "district": "krishna-rural"
+    }
+  ],
+  "districts": {
+    "guntur": [
+      {
+        "host": "172.30.49.173",
+        "cpuUtilization": 11,
+        "memoryUtilization": 25.530024120858197,
+        "memoryTotal": 7877,
+        "memoryUsed": 2011,
+        "memoryFree": 139,
+        "memoryAvailable": 5557,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.174",
+        "cpuUtilization": 94,
+        "memoryUtilization": 60.56874444585502,
+        "memoryTotal": 7877,
+        "memoryUsed": 4771,
+        "memoryFree": 117,
+        "memoryAvailable": 2798,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.175",
+        "cpuUtilization": 0,
+        "memoryUtilization": 0,
+        "memoryTotal": 0,
+        "memoryUsed": 0,
+        "memoryFree": 0,
+        "memoryAvailable": 0,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.176",
+        "cpuUtilization": 16,
+        "memoryUtilization": 37.04456011171766,
+        "memoryTotal": 7877,
+        "memoryUsed": 2918,
+        "memoryFree": 991,
+        "memoryAvailable": 4631,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.177",
+        "cpuUtilization": 26,
+        "memoryUtilization": 31.217468579408404,
+        "memoryTotal": 7877,
+        "memoryUsed": 2459,
+        "memoryFree": 130,
+        "memoryAvailable": 5107,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.178",
+        "cpuUtilization": 17,
+        "memoryUtilization": 34.03580043163641,
+        "memoryTotal": 7877,
+        "memoryUsed": 2681,
+        "memoryFree": 121,
+        "memoryAvailable": 4881,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.179",
+        "cpuUtilization": 42,
+        "memoryUtilization": 56.45550336422496,
+        "memoryTotal": 7877,
+        "memoryUsed": 4447,
+        "memoryFree": 117,
+        "memoryAvailable": 3115,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.180",
+        "cpuUtilization": 31,
+        "memoryUtilization": 41.906817316237145,
+        "memoryTotal": 7877,
+        "memoryUsed": 3301,
+        "memoryFree": 136,
+        "memoryAvailable": 4262,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.146",
+        "cpuUtilization": 96,
+        "memoryUtilization": 84.54995556684017,
+        "memoryTotal": 7877,
+        "memoryUsed": 6660,
+        "memoryFree": 129,
+        "memoryAvailable": 906,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.147",
+        "cpuUtilization": 4,
+        "memoryUtilization": 24.42554271930938,
+        "memoryTotal": 7877,
+        "memoryUsed": 1924,
+        "memoryFree": 1078,
+        "memoryAvailable": 5551,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.148",
+        "cpuUtilization": 97,
+        "memoryUtilization": 64.83432778976767,
+        "memoryTotal": 7877,
+        "memoryUsed": 5107,
+        "memoryFree": 172,
+        "memoryAvailable": 2458,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.152",
+        "cpuUtilization": 10,
+        "memoryUtilization": 30.709661038466425,
+        "memoryTotal": 7877,
+        "memoryUsed": 2419,
+        "memoryFree": 124,
+        "memoryAvailable": 5139,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.153",
+        "cpuUtilization": 93,
+        "memoryUtilization": 59.5150437984004,
+        "memoryTotal": 7877,
+        "memoryUsed": 4688,
+        "memoryFree": 145,
+        "memoryAvailable": 2869,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.154",
+        "cpuUtilization": 54,
+        "memoryUtilization": 53.281706233337566,
+        "memoryTotal": 7877,
+        "memoryUsed": 4197,
+        "memoryFree": 135,
+        "memoryAvailable": 3361,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.155",
+        "cpuUtilization": 51,
+        "memoryUtilization": 48.17824044687063,
+        "memoryTotal": 7877,
+        "memoryUsed": 3795,
+        "memoryFree": 131,
+        "memoryAvailable": 3762,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.156",
+        "cpuUtilization": 8,
+        "memoryUtilization": 30.12568236638314,
+        "memoryTotal": 7877,
+        "memoryUsed": 2373,
+        "memoryFree": 116,
+        "memoryAvailable": 5185,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.157",
+        "cpuUtilization": 17,
+        "memoryUtilization": 38.18712707883712,
+        "memoryTotal": 7877,
+        "memoryUsed": 3008,
+        "memoryFree": 770,
+        "memoryAvailable": 4539,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.158",
+        "cpuUtilization": 27,
+        "memoryUtilization": 37.98400406246032,
+        "memoryTotal": 7877,
+        "memoryUsed": 2992,
+        "memoryFree": 169,
+        "memoryAvailable": 4560,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.159",
+        "cpuUtilization": 96,
+        "memoryUtilization": 65.6595150437984,
+        "memoryTotal": 7877,
+        "memoryUsed": 5172,
+        "memoryFree": 123,
+        "memoryAvailable": 2381,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.160",
+        "cpuUtilization": 2,
+        "memoryUtilization": 65.30404976513901,
+        "memoryTotal": 7877,
+        "memoryUsed": 5144,
+        "memoryFree": 122,
+        "memoryAvailable": 2421,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.161",
+        "cpuUtilization": 3,
+        "memoryUtilization": 35.368795226609116,
+        "memoryTotal": 7877,
+        "memoryUsed": 2786,
+        "memoryFree": 202,
+        "memoryAvailable": 4581,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.162",
+        "cpuUtilization": 97,
+        "memoryUtilization": 68.92217849435063,
+        "memoryTotal": 7877,
+        "memoryUsed": 5429,
+        "memoryFree": 142,
+        "memoryAvailable": 2148,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.163",
+        "cpuUtilization": 5,
+        "memoryUtilization": 91.34188142693918,
+        "memoryTotal": 7877,
+        "memoryUsed": 7195,
+        "memoryFree": 123,
+        "memoryAvailable": 384,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.164",
+        "cpuUtilization": 96,
+        "memoryUtilization": 88.43468325504634,
+        "memoryTotal": 7877,
+        "memoryUsed": 6966,
+        "memoryFree": 116,
+        "memoryAvailable": 628,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.165",
+        "cpuUtilization": 31,
+        "memoryUtilization": 61.063856798273456,
+        "memoryTotal": 7877,
+        "memoryUsed": 4810,
+        "memoryFree": 140,
+        "memoryAvailable": 2655,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.166",
+        "cpuUtilization": 0,
+        "memoryUtilization": 0,
+        "memoryTotal": 0,
+        "memoryUsed": 0,
+        "memoryFree": 0,
+        "memoryAvailable": 0,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.167",
+        "cpuUtilization": 1,
+        "memoryUtilization": 10.803605433540687,
+        "memoryTotal": 7877,
+        "memoryUsed": 851,
+        "memoryFree": 1505,
+        "memoryAvailable": 6697,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.168",
+        "cpuUtilization": 95,
+        "memoryUtilization": 65.98958994541069,
+        "memoryTotal": 7877,
+        "memoryUsed": 5198,
+        "memoryFree": 140,
+        "memoryAvailable": 2364,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.169",
+        "cpuUtilization": 7,
+        "memoryUtilization": 28.65304049765139,
+        "memoryTotal": 7877,
+        "memoryUsed": 2257,
+        "memoryFree": 125,
+        "memoryAvailable": 5304,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.170",
+        "cpuUtilization": 0,
+        "memoryUtilization": 0,
+        "memoryTotal": 0,
+        "memoryUsed": 0,
+        "memoryFree": 0,
+        "memoryAvailable": 0,
+        "district": "guntur"
+      },
+      {
+        "host": "172.30.49.189",
+        "cpuUtilization": 0,
+        "memoryUtilization": 0,
+        "memoryTotal": 0,
+        "memoryUsed": 0,
+        "memoryFree": 0,
+        "memoryAvailable": 0,
+        "district": "guntur"
+      }
+    ],
+    "krishna-urban": [
+      {
+        "host": "172.30.114.218",
+        "cpuUtilization": 95,
+        "memoryUtilization": 62.44763234734035,
+        "memoryTotal": 7877,
+        "memoryUsed": 4919,
+        "memoryFree": 127,
+        "memoryAvailable": 2649,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.219",
+        "cpuUtilization": 99,
+        "memoryUtilization": 84.23257585375143,
+        "memoryTotal": 7877,
+        "memoryUsed": 6635,
+        "memoryFree": 130,
+        "memoryAvailable": 938,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.220",
+        "cpuUtilization": 11,
+        "memoryUtilization": 37.831661800177734,
+        "memoryTotal": 7877,
+        "memoryUsed": 2980,
+        "memoryFree": 124,
+        "memoryAvailable": 4537,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.221",
+        "cpuUtilization": 8,
+        "memoryUtilization": 24.412847530785832,
+        "memoryTotal": 7877,
+        "memoryUsed": 1923,
+        "memoryFree": 122,
+        "memoryAvailable": 5600,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.222",
+        "cpuUtilization": 12,
+        "memoryUtilization": 36.232068046210486,
+        "memoryTotal": 7877,
+        "memoryUsed": 2854,
+        "memoryFree": 132,
+        "memoryAvailable": 4661,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.223",
+        "cpuUtilization": 7,
+        "memoryUtilization": 37.273073505141554,
+        "memoryTotal": 7877,
+        "memoryUsed": 2936,
+        "memoryFree": 3016,
+        "memoryAvailable": 4624,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.224",
+        "cpuUtilization": 14,
+        "memoryUtilization": 22.241970293258856,
+        "memoryTotal": 7877,
+        "memoryUsed": 1752,
+        "memoryFree": 119,
+        "memoryAvailable": 5807,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.225",
+        "cpuUtilization": 5,
+        "memoryUtilization": 45.728069061825565,
+        "memoryTotal": 7877,
+        "memoryUsed": 3602,
+        "memoryFree": 126,
+        "memoryAvailable": 3962,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.226",
+        "cpuUtilization": 20,
+        "memoryUtilization": 39.71054970166307,
+        "memoryTotal": 7877,
+        "memoryUsed": 3128,
+        "memoryFree": 132,
+        "memoryAvailable": 4437,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.227",
+        "cpuUtilization": 8,
+        "memoryUtilization": 26.27904024374762,
+        "memoryTotal": 7877,
+        "memoryUsed": 2070,
+        "memoryFree": 120,
+        "memoryAvailable": 5480,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.228",
+        "cpuUtilization": 8,
+        "memoryUtilization": 27.878633997714864,
+        "memoryTotal": 7877,
+        "memoryUsed": 2196,
+        "memoryFree": 140,
+        "memoryAvailable": 5352,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.229",
+        "cpuUtilization": 9,
+        "memoryUtilization": 32.42351148914561,
+        "memoryTotal": 7877,
+        "memoryUsed": 2554,
+        "memoryFree": 125,
+        "memoryAvailable": 4959,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.230",
+        "cpuUtilization": 10,
+        "memoryUtilization": 52.62155643011299,
+        "memoryTotal": 7877,
+        "memoryUsed": 4145,
+        "memoryFree": 142,
+        "memoryAvailable": 3420,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.231",
+        "cpuUtilization": 11,
+        "memoryUtilization": 29.26240954678177,
+        "memoryTotal": 7877,
+        "memoryUsed": 2305,
+        "memoryFree": 119,
+        "memoryAvailable": 5258,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.232",
+        "cpuUtilization": 18,
+        "memoryUtilization": 38.52989716897296,
+        "memoryTotal": 7877,
+        "memoryUsed": 3035,
+        "memoryFree": 129,
+        "memoryAvailable": 4530,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.233",
+        "cpuUtilization": 74,
+        "memoryUtilization": 54.65278659388092,
+        "memoryTotal": 7877,
+        "memoryUsed": 4305,
+        "memoryFree": 119,
+        "memoryAvailable": 3232,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.234",
+        "cpuUtilization": 80,
+        "memoryUtilization": 56.5697600609369,
+        "memoryTotal": 7877,
+        "memoryUsed": 4456,
+        "memoryFree": 135,
+        "memoryAvailable": 3073,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.235",
+        "cpuUtilization": 28,
+        "memoryUtilization": 42.99860352926241,
+        "memoryTotal": 7877,
+        "memoryUsed": 3387,
+        "memoryFree": 120,
+        "memoryAvailable": 4178,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.236",
+        "cpuUtilization": 27,
+        "memoryUtilization": 33.98501967754221,
+        "memoryTotal": 7877,
+        "memoryUsed": 2677,
+        "memoryFree": 132,
+        "memoryAvailable": 4889,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.176",
+        "cpuUtilization": 9,
+        "memoryUtilization": 40.2564428081757,
+        "memoryTotal": 7877,
+        "memoryUsed": 3171,
+        "memoryFree": 132,
+        "memoryAvailable": 4393,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.177",
+        "cpuUtilization": 0,
+        "memoryUtilization": 0,
+        "memoryTotal": 0,
+        "memoryUsed": 0,
+        "memoryFree": 0,
+        "memoryAvailable": 0,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.178",
+        "cpuUtilization": 8,
+        "memoryUtilization": 23.85425923574965,
+        "memoryTotal": 7877,
+        "memoryUsed": 1879,
+        "memoryFree": 148,
+        "memoryAvailable": 5637,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.179",
+        "cpuUtilization": 11,
+        "memoryUtilization": 30.100291989336043,
+        "memoryTotal": 7877,
+        "memoryUsed": 2371,
+        "memoryFree": 194,
+        "memoryAvailable": 5192,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.180",
+        "cpuUtilization": 9,
+        "memoryUtilization": 50.095213913926614,
+        "memoryTotal": 7877,
+        "memoryUsed": 3946,
+        "memoryFree": 119,
+        "memoryAvailable": 3588,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.181",
+        "cpuUtilization": 51,
+        "memoryUtilization": 55.63031611019424,
+        "memoryTotal": 7877,
+        "memoryUsed": 4382,
+        "memoryFree": 133,
+        "memoryAvailable": 3174,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.182",
+        "cpuUtilization": 95,
+        "memoryUtilization": 65.9388091913165,
+        "memoryTotal": 7877,
+        "memoryUsed": 5194,
+        "memoryFree": 122,
+        "memoryAvailable": 2358,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.183",
+        "cpuUtilization": 13,
+        "memoryUtilization": 36.25745842325759,
+        "memoryTotal": 7877,
+        "memoryUsed": 2856,
+        "memoryFree": 409,
+        "memoryAvailable": 4684,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.184",
+        "cpuUtilization": 8,
+        "memoryUtilization": 40.4595658245525,
+        "memoryTotal": 7877,
+        "memoryUsed": 3187,
+        "memoryFree": 128,
+        "memoryAvailable": 4342,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.185",
+        "cpuUtilization": 1,
+        "memoryUtilization": 53.68795226609115,
+        "memoryTotal": 7877,
+        "memoryUsed": 4229,
+        "memoryFree": 197,
+        "memoryAvailable": 3318,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.186",
+        "cpuUtilization": 28,
+        "memoryUtilization": 32.321949980957214,
+        "memoryTotal": 7877,
+        "memoryUsed": 2546,
+        "memoryFree": 118,
+        "memoryAvailable": 5020,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.187",
+        "cpuUtilization": 32,
+        "memoryUtilization": 41.7163894883839,
+        "memoryTotal": 7877,
+        "memoryUsed": 3286,
+        "memoryFree": 116,
+        "memoryAvailable": 4271,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.188",
+        "cpuUtilization": 96,
+        "memoryUtilization": 77.28830773136981,
+        "memoryTotal": 7877,
+        "memoryUsed": 6088,
+        "memoryFree": 1383,
+        "memoryAvailable": 1473,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.189",
+        "cpuUtilization": 10,
+        "memoryUtilization": 36.16859210359274,
+        "memoryTotal": 7877,
+        "memoryUsed": 2849,
+        "memoryFree": 129,
+        "memoryAvailable": 4678,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.190",
+        "cpuUtilization": 33,
+        "memoryUtilization": 45.004443315983245,
+        "memoryTotal": 7877,
+        "memoryUsed": 3545,
+        "memoryFree": 128,
+        "memoryAvailable": 4023,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.191",
+        "cpuUtilization": 10,
+        "memoryUtilization": 29.79560746477085,
+        "memoryTotal": 7877,
+        "memoryUsed": 2347,
+        "memoryFree": 114,
+        "memoryAvailable": 5181,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.192",
+        "cpuUtilization": 7,
+        "memoryUtilization": 59.15957851974102,
+        "memoryTotal": 7877,
+        "memoryUsed": 4660,
+        "memoryFree": 179,
+        "memoryAvailable": 2886,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.193",
+        "cpuUtilization": 17,
+        "memoryUtilization": 44.623587660276755,
+        "memoryTotal": 7877,
+        "memoryUsed": 3515,
+        "memoryFree": 150,
+        "memoryAvailable": 3883,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.194",
+        "cpuUtilization": 15,
+        "memoryUtilization": 42.66852862765012,
+        "memoryTotal": 7877,
+        "memoryUsed": 3361,
+        "memoryFree": 188,
+        "memoryAvailable": 4030,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.195",
+        "cpuUtilization": 14,
+        "memoryUtilization": 38.009394439507425,
+        "memoryTotal": 7877,
+        "memoryUsed": 2994,
+        "memoryFree": 405,
+        "memoryAvailable": 4393,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.196",
+        "cpuUtilization": 8,
+        "memoryUtilization": 35.26723371842072,
+        "memoryTotal": 7877,
+        "memoryUsed": 2778,
+        "memoryFree": 857,
+        "memoryAvailable": 4769,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.197",
+        "cpuUtilization": 8,
+        "memoryUtilization": 53.764123397232446,
+        "memoryTotal": 7877,
+        "memoryUsed": 4235,
+        "memoryFree": 179,
+        "memoryAvailable": 3260,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.198",
+        "cpuUtilization": 8,
+        "memoryUtilization": 38.771105750920405,
+        "memoryTotal": 7877,
+        "memoryUsed": 3054,
+        "memoryFree": 517,
+        "memoryAvailable": 4295,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.199",
+        "cpuUtilization": 6,
+        "memoryUtilization": 36.49866700520503,
+        "memoryTotal": 7877,
+        "memoryUsed": 2875,
+        "memoryFree": 841,
+        "memoryAvailable": 4536,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.161",
+        "cpuUtilization": 8,
+        "memoryUtilization": 40.37069950488765,
+        "memoryTotal": 7877,
+        "memoryUsed": 3180,
+        "memoryFree": 227,
+        "memoryAvailable": 4335,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.201",
+        "cpuUtilization": 7,
+        "memoryUtilization": 33.388345816935384,
+        "memoryTotal": 7877,
+        "memoryUsed": 2630,
+        "memoryFree": 1174,
+        "memoryAvailable": 4871,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.202",
+        "cpuUtilization": 9,
+        "memoryUtilization": 44.877491430747746,
+        "memoryTotal": 7877,
+        "memoryUsed": 3535,
+        "memoryFree": 200,
+        "memoryAvailable": 3973,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.162",
+        "cpuUtilization": 0,
+        "memoryUtilization": 0,
+        "memoryTotal": 0,
+        "memoryUsed": 0,
+        "memoryFree": 0,
+        "memoryAvailable": 0,
+        "district": "krishna-urban"
+      },
+      {
+        "host": "172.30.114.203",
+        "cpuUtilization": 9,
+        "memoryUtilization": 41.17049638187127,
+        "memoryTotal": 7877,
+        "memoryUsed": 3243,
+        "memoryFree": 464,
+        "memoryAvailable": 4188,
+        "district": "krishna-urban"
+      }
+    ],
+    "krishna-rural": [
+      {
+        "host": "172.30.114.204",
+        "cpuUtilization": 4,
+        "memoryUtilization": 54.28462612669798,
+        "memoryTotal": 7877,
+        "memoryUsed": 4276,
+        "memoryFree": 185,
+        "memoryAvailable": 3291,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.205",
+        "cpuUtilization": 0,
+        "memoryUtilization": 14.739113875841056,
+        "memoryTotal": 7877,
+        "memoryUsed": 1161,
+        "memoryFree": 3827,
+        "memoryAvailable": 6384,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.206",
+        "cpuUtilization": 8,
+        "memoryUtilization": 43.60797257839279,
+        "memoryTotal": 7877,
+        "memoryUsed": 3435,
+        "memoryFree": 120,
+        "memoryAvailable": 4130,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.207",
+        "cpuUtilization": 9,
+        "memoryUtilization": 50.12060429097372,
+        "memoryTotal": 7877,
+        "memoryUsed": 3948,
+        "memoryFree": 123,
+        "memoryAvailable": 3617,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.208",
+        "cpuUtilization": 32,
+        "memoryUtilization": 41.88142693919005,
+        "memoryTotal": 7877,
+        "memoryUsed": 3299,
+        "memoryFree": 2662,
+        "memoryAvailable": 4264,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.209",
+        "cpuUtilization": 11,
+        "memoryUtilization": 20.794718801574202,
+        "memoryTotal": 7877,
+        "memoryUsed": 1638,
+        "memoryFree": 120,
+        "memoryAvailable": 5928,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.210",
+        "cpuUtilization": 25,
+        "memoryUtilization": 52.83737463501333,
+        "memoryTotal": 7877,
+        "memoryUsed": 4162,
+        "memoryFree": 124,
+        "memoryAvailable": 3402,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.211",
+        "cpuUtilization": 7,
+        "memoryUtilization": 36.13050653802209,
+        "memoryTotal": 7877,
+        "memoryUsed": 2846,
+        "memoryFree": 138,
+        "memoryAvailable": 4719,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.212",
+        "cpuUtilization": 8,
+        "memoryUtilization": 29.135457661546273,
+        "memoryTotal": 7877,
+        "memoryUsed": 2295,
+        "memoryFree": 125,
+        "memoryAvailable": 5244,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.213",
+        "cpuUtilization": 3,
+        "memoryUtilization": 26.152088358512128,
+        "memoryTotal": 7877,
+        "memoryUsed": 2060,
+        "memoryFree": 264,
+        "memoryAvailable": 5498,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.214",
+        "cpuUtilization": 9,
+        "memoryUtilization": 25.504633743811095,
+        "memoryTotal": 7877,
+        "memoryUsed": 2009,
+        "memoryFree": 127,
+        "memoryAvailable": 5526,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.215",
+        "cpuUtilization": 0,
+        "memoryUtilization": 14.63755236765266,
+        "memoryTotal": 7877,
+        "memoryUsed": 1153,
+        "memoryFree": 4595,
+        "memoryAvailable": 6356,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.216",
+        "cpuUtilization": 7,
+        "memoryUtilization": 35.051415513520375,
+        "memoryTotal": 7877,
+        "memoryUsed": 2761,
+        "memoryFree": 611,
+        "memoryAvailable": 4805,
+        "district": "krishna-rural"
+      },
+      {
+        "host": "172.30.114.217",
+        "cpuUtilization": 41,
+        "memoryUtilization": 52.97702170877238,
+        "memoryTotal": 7877,
+        "memoryUsed": 4173,
+        "memoryFree": 953,
+        "memoryAvailable": 3362,
+        "district": "krishna-rural"
+      }
+    ]
+  }
+}

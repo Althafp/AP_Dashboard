@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { gpuApiPlugin } from './vite-plugin-gpu-api.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), gpuApiPlugin()],
   server: {
     port: 3000,
     host: '0.0.0.0', // Allow external connections (including ngrok)
@@ -17,12 +18,20 @@ export default defineConfig({
       '127.0.0.1'
     ],
     proxy: {
+      // Other API calls - proxy to external API
+      // Note: /api/gpu-usage is handled by the plugin middleware, not proxied
       '/api': {
         target: 'https://172.30.113.15',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
         timeout: 30000, // 30 second timeout
-        rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
+        rewrite: (path) => {
+          // Don't rewrite /api/gpu-usage - let plugin handle it
+          if (path === '/api/gpu-usage') {
+            return path;
+          }
+          return path.replace(/^\/api/, '/api/v1');
+        },
         configure: (proxy, _options) => {
           proxy.on('proxyReq', (proxyReq, req, _res) => {
             // Preserve all headers including Authorization and Cookie
