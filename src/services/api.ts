@@ -14,8 +14,8 @@ import type {
 } from '../types';
 
 // Use relative /api path which will be proxied:
-// - In development: Vite proxy forwards to https://172.30.113.15/api/v1
-// - In production (Vercel): Serverless function proxies to https://172.30.113.15/api/v1
+// - In development: Vite proxy forwards to https://223.196.186.236/api/v1
+// - In production (Vercel): Serverless function proxies to https://223.196.186.236/api/v1
 // Set VITE_API_BASE_URL only if you want to bypass the proxy (not recommended)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 

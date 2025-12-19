@@ -2,7 +2,7 @@
 
 ## 🔧 What Was Fixed
 
-The issue was that your API server (`https://172.30.113.15`) has a self-signed SSL certificate, which browsers block when making direct API calls from JavaScript.
+The issue was that your API server (`https://223.196.186.236`) has a self-signed SSL certificate, which browsers block when making direct API calls from JavaScript.
 
 ### Solution Implemented
 
@@ -10,7 +10,7 @@ Created a **Vercel serverless function** that acts as a proxy (similar to your V
 
 1. **`api/[...path].js`** - Serverless function that:
    - Receives all `/api/*` requests
-   - Proxies them to `https://172.30.113.15/api/v1/*`
+   - Proxies them to `https://223.196.186.236/api/v1/*`
    - **Bypasses SSL certificate validation** (server-side, so it works!)
    - Preserves all headers (Authorization, Cookie, etc.)
    - Handles CORS properly
@@ -27,7 +27,7 @@ Created a **Vercel serverless function** that acts as a proxy (similar to your V
 
 1. Go to your Vercel project dashboard
 2. Navigate to **Settings** → **Environment Variables**
-3. **Delete or unset** `VITE_API_BASE_URL` (if it's set to `https://172.30.113.15/api/v1`)
+3. **Delete or unset** `VITE_API_BASE_URL` (if it's set to `https://223.196.186.236/api/v1`)
 4. This allows the app to use the relative `/api` path, which will be proxied
 
 ### Step 2: Deploy to Vercel
@@ -65,7 +65,7 @@ Browser → http://localhost:3000/api/query/objects
          ↓
    Vite Dev Server Proxy
          ↓
-   https://172.30.113.15/api/v1/query/objects ✅
+   https://223.196.186.236/api/v1/query/objects ✅
 ```
 
 ### Production (Vercel - now fixed):
@@ -74,7 +74,7 @@ Browser → https://your-app.vercel.app/api/query/objects
          ↓
    Vercel Serverless Function (api/[...path].js)
          ↓
-   https://172.30.113.15/api/v1/query/objects ✅
+   https://223.196.186.236/api/v1/query/objects ✅
    (SSL validation bypassed server-side)
 ```
 

@@ -36,7 +36,7 @@ python test_api.py
 When you run `npm run dev`, you should now see detailed proxy logs:
 
 ```
-[Proxy] Forwarding GET /api/query/objects/status?status=Up to https://172.30.113.15/api/v1/query/objects/status?status=Up
+[Proxy] Forwarding GET /api/query/objects/status?status=Up to https://223.196.186.236/api/v1/query/objects/status?status=Up
 [Proxy] Response 500 for GET /api/query/objects/status?status=Up
 [Proxy] Server error 500 from API server
 ```
@@ -44,7 +44,7 @@ When you run `npm run dev`, you should now see detailed proxy logs:
 **OR** if there's a connection error:
 
 ```
-[Proxy Error] connect ECONNREFUSED 172.30.113.15:443
+[Proxy Error] connect ECONNREFUSED 223.196.186.236:443
 [Proxy Error] Request URL: /api/query/objects/status?status=Up
 ```
 
@@ -55,12 +55,12 @@ When you run `npm run dev`, you should now see detailed proxy logs:
 **Symptom**: `[Proxy Error] connect ECONNREFUSED` or `ETIMEDOUT`
 
 **Possible Causes**:
-- The API server at `172.30.113.15` is only accessible from your local network
+- The API server at `223.196.186.236` is only accessible from your local network
 - GCP VM doesn't have internet access to that IP
 - Firewall blocking outbound connections
 
 **Solutions**:
-1. **Check if API server is on a private network**: If `172.30.113.15` is a private IP, the GCP VM won't be able to reach it
+1. **Check if API server is on a private network**: If `223.196.186.236` is a private IP, the GCP VM won't be able to reach it
 2. **Use VPN or SSH tunnel**: Set up a tunnel from your local machine to the VM
 3. **Change API URL**: If the API is accessible via a different URL from the VM
 
@@ -90,7 +90,7 @@ If the proxy doesn't work, you can bypass it by setting an environment variable:
 
 ```bash
 # On the VM, create a .env file
-echo "VITE_API_BASE_URL=https://172.30.113.15/api/v1" > .env
+echo "VITE_API_BASE_URL=https://223.196.186.236/api/v1" > .env
 
 # Restart the dev server
 npm run dev
@@ -104,13 +104,13 @@ Test basic connectivity:
 
 ```bash
 # Test if you can reach the API server
-ping 172.30.113.15
+ping 223.196.186.236
 
 # Test HTTPS connection
-curl -k -I https://172.30.113.15
+curl -k -I https://223.196.186.236
 
 # Test specific API endpoint
-curl -k -X GET "https://172.30.113.15/api/v1/query/objects/status?status=Up" \
+curl -k -X GET "https://223.196.186.236/api/v1/query/objects/status?status=Up" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -H "Cookie: client.id=Q5VZ97naQhyLIH0Vz4MSXvzbMyCYTjPwz+1hVJ643pA="
@@ -132,13 +132,13 @@ curl -k -X GET "https://172.30.113.15/api/v1/query/objects/status?status=Up" \
 python test_api.py
 
 # Check if port 443 is reachable
-nc -zv 172.30.113.15 443
+nc -zv 223.196.186.236 443
 
 # Check DNS resolution
-nslookup 172.30.113.15
+nslookup 223.196.186.236
 
 # Check network routes
-traceroute 172.30.113.15
+traceroute 223.196.186.236
 ```
 
 ---

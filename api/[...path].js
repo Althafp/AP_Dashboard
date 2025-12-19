@@ -1,7 +1,7 @@
 const https = require('https');
 
 // Target API server
-const API_TARGET = 'https://172.30.113.15';
+const API_TARGET = 'https://223.196.186.236';
 const API_BASE_PATH = '/api/v1';
 
 export default async function handler(req, res) {

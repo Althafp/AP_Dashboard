@@ -43,7 +43,7 @@ The server is restarting with the correct configuration.
 
 ```
 GET /api/v1/query/objects HTTP/1.1
-Host: 172.30.113.15
+Host: 223.196.186.236
 Authorization: Bearer eyJ0eXAiOiJKV1Q...
 Cookie: client.id=Q5VZ97naQhyLIH0Vz4MSXvzbMyCYTjPwz+1hVJ643pA=
 Accept: application/json

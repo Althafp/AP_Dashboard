@@ -21,7 +21,7 @@ export default defineConfig({
       // Other API calls - proxy to external API
       // Note: /api/gpu-usage is handled by the plugin middleware, not proxied
       '/api': {
-        target: 'https://172.30.113.15',
+        target: 'https://223.196.186.236',
         changeOrigin: true,
         secure: false, // Allow self-signed certificates
         timeout: 30000, // 30 second timeout
@@ -46,7 +46,7 @@ export default defineConfig({
             proxyReq.setHeader('Content-Type', 'application/json');
             
             // Log the request for debugging
-            console.log(`[Proxy] Forwarding ${req.method} ${req.url} to https://172.30.113.15/api/v1${req.url.replace('/api', '')}`);
+            console.log(`[Proxy] Forwarding ${req.method} ${req.url} to https://223.196.186.236/api/v1${req.url.replace('/api', '')}`);
           });
           
           proxy.on('error', (err, req, res) => {
@@ -59,7 +59,7 @@ export default defineConfig({
               res.end(JSON.stringify({
                 error: 'Proxy Error',
                 message: err.message,
-                details: 'Failed to connect to API server at https://172.30.113.15. Please check network connectivity.'
+                details: 'Failed to connect to API server at https://223.196.186.236. Please check network connectivity.'
               }));
             }
           });
