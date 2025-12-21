@@ -2,14 +2,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { apiService } from '../services/api';
-import { parseExcelFile, DistrictCameraMap, normalizeDistrictName, getDistrictDisplayName, parseUPSCameraMapping, UPSCameraMapping, parseGPUIPs, DistrictGPUMap } from '../utils/excelParser';
+import { parseExcelFile, DistrictCameraMap, normalizeDistrictName, getDistrictDisplayName, parseUPSCameraMapping, UPSCameraMapping, parseGPUIPs, DistrictGPUMap, parseOLTMapping, OLTCameraMapping } from '../utils/excelParser';
 
 interface DistrictInfo {
   name: string;
   feature: any;
 }
 
-type DeviceType = 'Cameras' | 'Servers' | 'APIs' | 'GPUs' | 'UPS';
+type DeviceType = 'Cameras' | 'Servers' | 'APIs' | 'GPUs' | 'UPS' | 'OLTs';
 
 // UPS District Code Mapping
 const UPS_DISTRICT_CODES: Record<string, string> = {
@@ -61,16 +61,19 @@ export const AndhraPradeshMap: React.FC = () => {
     Servers: 0,
     APIs: 0,
     GPUs: 0,
-    UPS: 0
+    UPS: 0,
+    OLTs: 0
   });
   const [districtDeviceTypeCounts, setDistrictDeviceTypeCounts] = useState<Record<DeviceType, number>>({
     Cameras: 0,
     Servers: 0,
     APIs: 0,
     GPUs: 0,
-    UPS: 0
+    UPS: 0,
+    OLTs: 0
   });
   const [upsCameraMapping, setUpsCameraMapping] = useState<UPSCameraMapping>({ upsToCameras: {}, cameraToUPS: {} });
+  const [oltCameraMapping, setOltCameraMapping] = useState<OLTCameraMapping>({ cameraToOLT: {}, oltToCameras: {}, allOLTIPs: [], districtOLTs: {} });
   const [deviceMappingData, setDeviceMappingData] = useState<any>(null);
   const [loadingMapping, setLoadingMapping] = useState(false);
   const mapInstanceRef = useRef<any>(null);
@@ -103,7 +106,8 @@ export const AndhraPradeshMap: React.FC = () => {
         Servers: 0,
         APIs: 0,
         GPUs: 0,
-        UPS: 0
+        UPS: 0,
+        OLTs: 0
       };
 
       allMonitors.forEach((monitor: any) => {
@@ -133,6 +137,9 @@ export const AndhraPradeshMap: React.FC = () => {
       // Update GPU count from Excel list
       counts.GPUs = gpuIPs.length;
       
+      // Update OLT count from Excel list
+      counts.OLTs = oltCameraMapping.allOLTIPs.length;
+      
       setDeviceTypeCounts(counts);
     } catch (error) {
       console.error('Error loading device type counts:', error);
@@ -148,6 +155,16 @@ export const AndhraPradeshMap: React.FC = () => {
       }));
     }
   }, [gpuIPs]);
+  
+  // Update OLT count when oltCameraMapping changes
+  useEffect(() => {
+    if (oltCameraMapping.allOLTIPs.length > 0) {
+      setDeviceTypeCounts(prev => ({
+        ...prev,
+        OLTs: oltCameraMapping.allOLTIPs.length
+      }));
+    }
+  }, [oltCameraMapping]);
 
   // Calculate district-specific device type counts
   const calculateDistrictDeviceTypeCounts = async (district: string) => {
@@ -170,7 +187,8 @@ export const AndhraPradeshMap: React.FC = () => {
         Servers: 0,
         APIs: 0,
         GPUs: 0,
-        UPS: 0
+        UPS: 0,
+        OLTs: 0
       };
 
       allMonitors.forEach((monitor: any) => {
@@ -241,6 +259,10 @@ export const AndhraPradeshMap: React.FC = () => {
           }
         }
       });
+      
+      // OLTs: Get count from Excel mapping (OLTs don't have up/down status in this view, just count unique OLTs for district)
+      const districtOLTs = oltCameraMapping.districtOLTs[excelDistrictName.toUpperCase()] || [];
+      counts.OLTs = districtOLTs.length;
 
       setDistrictDeviceTypeCounts(counts);
     } catch (error) {
@@ -268,6 +290,7 @@ export const AndhraPradeshMap: React.FC = () => {
         Cameras: 0,
         Servers: 0,
         APIs: 0,
+        OLTs: 0,
         GPUs: 0,
         UPS: 0
       });
@@ -338,6 +361,15 @@ export const AndhraPradeshMap: React.FC = () => {
         setDistrictGPUMap(gpuData.districtMap);
       } catch (gpuError) {
         console.warn('Error loading GPU IPs (may not exist):', gpuError);
+      }
+      
+      // Load OLT-Camera mapping from Excel file
+      try {
+        const oltData = await parseOLTMapping('/OLT IP\'s.xlsx');
+        setOltCameraMapping(oltData);
+        console.log('OLT mapping loaded:', oltData);
+      } catch (oltError) {
+        console.warn('Error loading OLT mapping (may not exist):', oltError);
       }
     } catch (error) {
       console.error('Error loading Excel data:', error);
@@ -428,6 +460,42 @@ export const AndhraPradeshMap: React.FC = () => {
     }
     
     return parts.length > 0 ? parts.join(' ') : 'Just now';
+  };
+
+  // Check OLT status using the proxied API endpoint
+  const checkOLTStatus = async (oltIP: string): Promise<{ status: string; lastUpTime?: string; lastDownTime?: string }> => {
+    try {
+      console.log(`[OLT Status Check] Checking OLT: ${oltIP}`);
+      
+      // Use the proxied endpoint to avoid CORS issues
+      const response = await fetch(`/api/olt-status?olt_no=${encodeURIComponent(oltIP)}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`[OLT Status Check] Response for ${oltIP}:`, data);
+      
+      if (data.message === 'success' && data.data && data.data.length > 0) {
+        const oltData = data.data[0];
+        // OLT Status codes: 1 = Up, 4 = Down
+        const oltStatusCode = oltData.olt_status?.toString();
+        const status = oltStatusCode === '1' ? 'Up' : oltStatusCode === '4' ? 'Down' : 'Unknown';
+        console.log(`[OLT Status Check] ${oltIP} = ${status} (raw: ${oltData.olt_status})`);
+        return {
+          status,
+          lastUpTime: oltData.last_up_time,
+          lastDownTime: oltData.last_down_time
+        };
+      }
+      
+      console.warn(`[OLT Status Check] No data for OLT ${oltIP}`);
+      return { status: 'Unknown' };
+    } catch (error) {
+      console.error(`[OLT Status Check] Error for ${oltIP}:`, error);
+      return { status: 'Unknown' };
+    }
   };
 
   // Format duration between two timestamps (timestamp - lastTriggered)
@@ -531,20 +599,76 @@ export const AndhraPradeshMap: React.FC = () => {
       }
 
       if (selectedDeviceType === 'UPS') {
-        // UPS clicked - show connected cameras
+        // UPS clicked - show connected cameras with OLT info
         const connectedCameras = upsCameraMapping.upsToCameras[deviceIP] || [];
-        const cameraStatuses = connectedCameras.map((cameraIP: string) => {
+        const cameraStatuses = await Promise.all(connectedCameras.map(async (cameraIP: string) => {
           const cameraMonitor = monitorByIP[cameraIP];
           const isUp = upMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
           const isDown = downMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+          
+          // Get OLT info for this camera
+          const oltInfo = oltCameraMapping.cameraToOLT[cameraIP] || null;
+          let oltStatus = 'Unknown';
+          
+          if (oltInfo) {
+            const oltStatusData = await checkOLTStatus(oltInfo.oltIP);
+            oltStatus = oltStatusData.status;
+          }
           
           return {
             ip: cameraIP,
             name: cameraMonitor?.['object.name'] || cameraIP,
             status: isUp ? 'Up' : isDown ? 'Down' : 'Unknown',
-            monitor: cameraMonitor
+            monitor: cameraMonitor,
+            oltIP: oltInfo?.oltIP || null,
+            oltPonPort: oltInfo?.ponPort || null,
+            oltStatus: oltStatus
           };
-        });
+        }));
+
+        // Select a representative camera (first down camera, or first camera)
+        const selectedCamera = cameraStatuses.find((c: any) => c.status === 'Down') || cameraStatuses[0];
+        
+        // Get OLT information for the selected camera
+        let oltIP = null;
+        let oltPonPort = null;
+        let oltStatus = 'Unknown';
+        let oltLastUpTime = '';
+        let oltLastDownTime = '';
+        let allCamerasOnOLT: any[] = [];
+        
+        if (selectedCamera && selectedCamera.ip) {
+          const oltInfo = oltCameraMapping.cameraToOLT[selectedCamera.ip] || null;
+          
+          if (oltInfo) {
+            oltIP = oltInfo.oltIP;
+            oltPonPort = oltInfo.ponPort;
+            
+            // Check OLT status
+            const oltStatusData = await checkOLTStatus(oltInfo.oltIP);
+            oltStatus = oltStatusData.status;
+            oltLastUpTime = oltStatusData.lastUpTime || '';
+            oltLastDownTime = oltStatusData.lastDownTime || '';
+            
+            // Get all cameras connected to this OLT
+            const camerasOnOLT = oltCameraMapping.oltToCameras[oltInfo.oltIP] || [];
+            allCamerasOnOLT = camerasOnOLT.map((cameraIP: string) => {
+              const cameraMonitor = monitorByIP[cameraIP];
+              const isUp = upMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+              const isDown = downMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+              const camOltInfo = oltCameraMapping.cameraToOLT[cameraIP];
+              
+              return {
+                ip: cameraIP,
+                name: cameraMonitor?.['object.name'] || cameraIP,
+                status: isUp ? 'Up' : isDown ? 'Down' : 'Unknown',
+                monitor: cameraMonitor,
+                ponPort: camOltInfo?.ponPort || 'N/A',
+                isSelected: cameraIP === selectedCamera.ip
+              };
+            });
+          }
+        }
 
         // Determine reason for down
         const camerasDown = cameraStatuses.filter((c: any) => c.status === 'Down').length;
@@ -566,18 +690,35 @@ export const AndhraPradeshMap: React.FC = () => {
           reason = 'Power Issue - UPS and connected cameras are down';
         }
 
+        // Mark selected camera in the cameraStatuses list
+        const allCamerasOnUPS = cameraStatuses.map((cam: any) => ({
+          ...cam,
+          isSelected: selectedCamera && cam.ip === selectedCamera.ip
+        }));
+
         mappingData = {
           type: 'UPS',
           upsIP: deviceIP,
           upsName: device.monitor || device['object.name'] || deviceIP,
           upsStatus: 'Down',
           connectedCameras: cameraStatuses,
+          allCamerasOnUPS: allCamerasOnUPS,
+          selectedCamera: selectedCamera,
+          selectedCameraIP: selectedCamera?.ip || null,
+          selectedCameraName: selectedCamera?.name || 'No Camera',
+          selectedCameraStatus: selectedCamera?.status || 'Unknown',
+          connectedOLT: oltIP,
+          oltPonPort: oltPonPort,
+          oltStatus: oltStatus,
+          oltLastUpTime: oltLastUpTime,
+          oltLastDownTime: oltLastDownTime,
+          allCamerasOnOLT: allCamerasOnOLT,
           reason: reason,
           districtDownCount: districtDownCount,
           districtTotalCount: districtTotalCount
         };
       } else if (selectedDeviceType === 'Cameras') {
-        // Camera clicked - show connected UPS and other cameras on same UPS
+        // Camera clicked - show connected UPS, OLT and other cameras on same UPS
         const connectedUPS = upsCameraMapping.cameraToUPS[deviceIP] || null;
         let upsStatus = 'Unknown';
         let upsMonitor = null;
@@ -601,6 +742,38 @@ export const AndhraPradeshMap: React.FC = () => {
               name: cameraMonitor?.['object.name'] || cameraIP,
               status: isUp ? 'Up' : isDown ? 'Down' : 'Unknown',
               monitor: cameraMonitor,
+              isSelected: cameraIP === deviceIP
+            };
+          });
+        }
+        
+        // Get OLT information for the selected camera
+        const oltInfo = oltCameraMapping.cameraToOLT[deviceIP] || null;
+        let oltStatus = 'Unknown';
+        let oltLastUpTime = '';
+        let oltLastDownTime = '';
+        let allCamerasOnOLT: any[] = [];
+        
+        if (oltInfo) {
+          const oltStatusData = await checkOLTStatus(oltInfo.oltIP);
+          oltStatus = oltStatusData.status;
+          oltLastUpTime = oltStatusData.lastUpTime || '';
+          oltLastDownTime = oltStatusData.lastDownTime || '';
+          
+          // Get all cameras connected to this OLT
+          const camerasOnOLT = oltCameraMapping.oltToCameras[oltInfo.oltIP] || [];
+          allCamerasOnOLT = camerasOnOLT.map((cameraIP: string) => {
+            const cameraMonitor = monitorByIP[cameraIP];
+            const isUp = upMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+            const isDown = downMonitors.some((m: any) => (m['object.ip'] || '') === cameraIP);
+            const camOltInfo = oltCameraMapping.cameraToOLT[cameraIP];
+            
+            return {
+              ip: cameraIP,
+              name: cameraMonitor?.['object.name'] || cameraIP,
+              status: isUp ? 'Up' : isDown ? 'Down' : 'Unknown',
+              monitor: cameraMonitor,
+              ponPort: camOltInfo?.ponPort || 'N/A',
               isSelected: cameraIP === deviceIP
             };
           });
@@ -634,6 +807,12 @@ export const AndhraPradeshMap: React.FC = () => {
           upsMonitor: upsMonitor,
           upsName: upsMonitor?.['object.name'] || connectedUPS || 'Not Found',
           allCamerasOnUPS: allCamerasOnUPS,
+          connectedOLT: oltInfo?.oltIP || null,
+          oltPonPort: oltInfo?.ponPort || null,
+          oltStatus: oltStatus,
+          oltLastUpTime: oltLastUpTime,
+          oltLastDownTime: oltLastDownTime,
+          allCamerasOnOLT: allCamerasOnOLT,
           reason: reason,
           districtDownCount: districtDownCount,
           districtTotalCount: districtTotalCount
@@ -1808,6 +1987,9 @@ export const AndhraPradeshMap: React.FC = () => {
                   <option value="UPS">
                     UPS ({selectedDistrict ? districtDeviceTypeCounts.UPS : deviceTypeCounts.UPS})
                   </option>
+                  <option value="OLTs">
+                    OLTs ({selectedDistrict ? districtDeviceTypeCounts.OLTs : deviceTypeCounts.OLTs})
+                  </option>
                 </select>
               </div>
 
@@ -2114,228 +2296,226 @@ export const AndhraPradeshMap: React.FC = () => {
                   <p className="text-lg text-gray-600">Loading mapping data...</p>
                 </div>
               </div>
-            ) : deviceMappingData.type === 'UPS' ? (
-              <div className="space-y-6">
-                {/* Tree Structure */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 shadow-xl border border-gray-200">
-                  <h4 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            ) : (
+              <div className="space-y-4">
+                {/* Neural Network Style Visualization */}
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 shadow-lg border border-slate-200">
+                  <h4 className="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    Connection Tree
+                    Connection Network
                   </h4>
-                  
-                  {/* UPS Node */}
-                  <div className="flex justify-center mb-6">
-                    <div className={`relative border-4 rounded-2xl p-6 min-w-[450px] max-w-[600px] transform transition-all hover:scale-105 ${
-                      deviceMappingData.upsStatus === 'Down'
-                        ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-500 shadow-xl'
-                        : 'bg-gradient-to-br from-green-50 to-green-100 border-green-500 shadow-xl'
-                    }`}>
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <div className="w-8 h-8 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center shadow-lg">
-                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-xl text-gray-900 mb-2">{deviceMappingData.upsName}</p>
-                          <p className="text-base text-gray-700 font-medium">IP: {deviceMappingData.upsIP}</p>
-                        </div>
-                        <span className={`px-5 py-2.5 text-base font-bold rounded-xl shadow-md ${
-                          deviceMappingData.upsStatus === 'Down'
-                            ? 'bg-red-600 text-white'
-                            : 'bg-green-600 text-white'
-                        }`}>
-                          {deviceMappingData.upsStatus}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Connection Lines with SVG */}
-                  {deviceMappingData.connectedCameras.length > 0 && (
-                    <div className="flex justify-center mb-6">
-                      <svg width="4" height="60" className="text-gray-400">
-                        <line x1="2" y1="0" x2="2" y2="60" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                  )}
+                  {/* Neural Network Layout: UPS (left) ← Camera (center) → OLT (right) */}
+                  <div className="relative">
+                    {/* Determine field names based on type */}
+                    {(() => {
+                      const isUPSType = deviceMappingData.type === 'UPS';
+                      const upsIP = isUPSType ? deviceMappingData.upsIP : deviceMappingData.connectedUPS;
+                      const cameraIP = isUPSType ? deviceMappingData.selectedCameraIP : deviceMappingData.cameraIP;
+                      const cameraStatus = isUPSType ? deviceMappingData.selectedCameraStatus : deviceMappingData.cameraStatus;
+                      const cameraName = isUPSType ? deviceMappingData.selectedCameraName : deviceMappingData.cameraName;
+                      
+                      return (
+                        <>
+                          {/* SVG for connection lines */}
+                          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+                            {/* Line from UPS to Camera */}
+                            {upsIP && (
+                              <line x1="15%" y1="50%" x2="45%" y2="50%" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
+                            )}
+                            {/* Line from Camera to OLT */}
+                            {deviceMappingData.connectedOLT && (
+                              <line x1="55%" y1="50%" x2="85%" y2="50%" stroke="#9333ea" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
+                            )}
+                          </svg>
 
-                  {/* Camera Nodes */}
-                  {deviceMappingData.connectedCameras.length === 0 ? (
-                    <p className="text-lg text-gray-500 text-center py-8">No cameras mapped to this UPS</p>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {deviceMappingData.connectedCameras.map((camera: any, idx: number) => (
-                        <div key={idx} className="relative group">
-                          <div className={`border-3 rounded-xl p-5 transition-all hover:shadow-lg ${
-                            camera.status === 'Down'
-                              ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-400'
-                              : camera.status === 'Up'
-                              ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-400'
-                              : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-400'
-                          }`}>
-                            <div className="flex items-start gap-3 mb-3">
-                              <div className="w-5 h-5 rounded-full bg-blue-500 flex-shrink-0 mt-1 shadow-md flex items-center justify-center">
-                                <div className="w-2 h-2 rounded-full bg-white"></div>
+                          <div className="relative grid grid-cols-3 gap-6 items-center" style={{ zIndex: 1 }}>
+                            
+                            {/* LEFT: UPS Node */}
+                            <div className="flex flex-col items-center">
+                              {upsIP ? (
+                                <>
+                                  <div className="relative group">
+                                    <div className={`w-28 h-28 rounded-2xl border-4 shadow-xl flex flex-col items-center justify-center cursor-help transition-transform hover:scale-110 ${
+                                      deviceMappingData.upsStatus === 'Down'
+                                        ? 'bg-gradient-to-br from-red-400 to-red-600 border-red-700'
+                                        : deviceMappingData.upsStatus === 'Up'
+                                        ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-700'
+                                        : 'bg-gradient-to-br from-gray-400 to-gray-600 border-gray-700'
+                                    }`}>
+                                      <svg className="w-12 h-12 text-white mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                                        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                                      </svg>
+                                      <p className="text-xs font-bold text-white">UPS</p>
+                                    </div>
+                                    {/* UPS Tooltip */}
+                                    <div className="absolute hidden group-hover:block z-50 top-full mt-2 left-1/2 transform -translate-x-1/2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-2xl">
+                                      <p className="font-bold mb-1">{deviceMappingData.upsName}</p>
+                                      <p>IP: {upsIP}</p>
+                                      <p className="mt-2">Status: <span className={deviceMappingData.upsStatus === 'Up' ? 'text-green-400' : 'text-red-400'}>{deviceMappingData.upsStatus}</span></p>
+                                      <p className="mt-2 text-yellow-300">{deviceMappingData.allCamerasOnUPS?.length || 0} cameras powered</p>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3 text-center">
+                                    <p className="text-xs font-semibold text-gray-700">{upsIP}</p>
+                                    <span className={`inline-block mt-1 px-2 py-1 text-xs font-bold rounded ${
+                                      deviceMappingData.upsStatus === 'Down' ? 'bg-red-600 text-white' :
+                                      deviceMappingData.upsStatus === 'Up' ? 'bg-green-600 text-white' : 'bg-gray-600 text-white'
+                                    }`}>
+                                      {deviceMappingData.upsStatus}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="w-28 h-28 rounded-2xl border-4 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
+                                  <p className="text-xs text-gray-400 text-center">No UPS</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* CENTER: Selected Camera */}
+                            <div className="flex flex-col items-center">
+                              <div className="relative">
+                                <div className="w-32 h-32 rounded-3xl border-4 border-indigo-500 shadow-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex flex-col items-center justify-center ring-4 ring-indigo-200 animate-pulse">
+                                  <svg className="w-14 h-14 text-white mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                                  </svg>
+                                  <p className="text-xs font-bold text-white">CAMERA</p>
+                                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                                    <span className="text-xs font-bold text-gray-900">★</span>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-base text-gray-900 break-words leading-tight">{camera.name}</p>
+                              <div className="mt-3 text-center">
+                                <p className="text-xs font-bold text-gray-900">{cameraIP || 'N/A'}</p>
+                                <span className={`inline-block mt-1 px-3 py-1 text-xs font-bold rounded-lg shadow ${
+                                  cameraStatus === 'Down' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+                                }`}>
+                                  {cameraStatus || 'Unknown'}
+                                </span>
                               </div>
                             </div>
-                            <p className="text-sm text-gray-700 ml-8 mb-3 font-medium">IP: {camera.ip}</p>
-                            <div className="ml-8">
-                              <span className={`px-3 py-1.5 text-sm font-bold rounded-lg shadow-sm ${
-                                camera.status === 'Down'
-                                  ? 'bg-red-600 text-white'
-                                  : camera.status === 'Up'
-                                  ? 'bg-green-600 text-white'
-                                  : 'bg-gray-600 text-white'
+
+                            {/* RIGHT: OLT Node */}
+                            <div className="flex flex-col items-center">
+                        {deviceMappingData.connectedOLT ? (
+                          <>
+                            <div className="relative group">
+                              <div className={`w-28 h-28 rounded-2xl border-4 shadow-xl flex flex-col items-center justify-center cursor-help transition-transform hover:scale-110 ${
+                                deviceMappingData.oltStatus === 'Down'
+                                  ? 'bg-gradient-to-br from-red-400 to-red-600 border-red-700'
+                                  : deviceMappingData.oltStatus === 'Up'
+                                  ? 'bg-gradient-to-br from-purple-400 to-purple-600 border-purple-700'
+                                  : 'bg-gradient-to-br from-gray-400 to-gray-600 border-gray-700'
+                              }`}>
+                                <svg className="w-12 h-12 text-white mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                </svg>
+                                <p className="text-xs font-bold text-white">OLT</p>
+                              </div>
+                              {/* OLT Tooltip */}
+                              <div className="absolute hidden group-hover:block z-50 top-full mt-2 left-1/2 transform -translate-x-1/2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-2xl">
+                                <p className="font-bold mb-1">OLT {deviceMappingData.connectedOLT}</p>
+                                <p>PON Port: {deviceMappingData.oltPonPort || 'N/A'}</p>
+                                <p className="mt-2">Status: <span className={deviceMappingData.oltStatus === 'Up' ? 'text-green-400' : 'text-red-400'}>{deviceMappingData.oltStatus}</span></p>
+                                {deviceMappingData.oltLastUpTime && <p className="mt-1 text-green-300 text-xs">↑ {deviceMappingData.oltLastUpTime}</p>}
+                                {deviceMappingData.oltLastDownTime && <p className="text-red-300 text-xs">↓ {deviceMappingData.oltLastDownTime}</p>}
+                                <p className="mt-2 text-yellow-300">{deviceMappingData.allCamerasOnOLT?.length || 0} cameras connected</p>
+                              </div>
+                            </div>
+                            <div className="mt-3 text-center">
+                              <p className="text-xs font-semibold text-gray-700">{deviceMappingData.connectedOLT}</p>
+                              <span className={`inline-block mt-1 px-2 py-1 text-xs font-bold rounded ${
+                                deviceMappingData.oltStatus === 'Down' ? 'bg-red-600 text-white' :
+                                deviceMappingData.oltStatus === 'Up' ? 'bg-purple-600 text-white' : 'bg-gray-600 text-white'
+                              }`}>
+                                {deviceMappingData.oltStatus}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="w-28 h-28 rounded-2xl border-4 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
+                            <p className="text-xs text-gray-400 text-center">No OLT</p>
+                          </div>
+                        )}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Bottom Section: Connected Devices Lists */}
+                  <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    
+                    {/* UPS Cameras List */}
+                    {(() => {
+                      const isUPSType = deviceMappingData.type === 'UPS';
+                      const upsIP = isUPSType ? deviceMappingData.upsIP : deviceMappingData.connectedUPS;
+                      
+                      return upsIP && deviceMappingData.allCamerasOnUPS && deviceMappingData.allCamerasOnUPS.length > 0 && (
+                        <div className="bg-white rounded-lg p-4 shadow border border-blue-200">
+                          <h5 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            Cameras on UPS {upsIP}
+                          </h5>
+                        <div className="max-h-48 overflow-y-auto space-y-1">
+                          {deviceMappingData.allCamerasOnUPS.map((camera: any, idx: number) => (
+                            <div key={idx} className={`flex items-center justify-between px-3 py-2 rounded-lg border transition-colors ${
+                              camera.isSelected
+                                ? 'bg-indigo-50 border-indigo-300 shadow-sm'
+                                : camera.status === 'Down'
+                                ? 'bg-red-50 border-red-200 hover:bg-red-100'
+                                : 'bg-green-50 border-green-200 hover:bg-green-100'
+                            }`}>
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <div className={`w-2 h-2 rounded-full ${camera.isSelected ? 'bg-indigo-500' : 'bg-blue-500'} flex-shrink-0`}></div>
+                                <p className="text-xs font-mono text-gray-900 truncate" title={camera.name}>{camera.ip}</p>
+                                {camera.isSelected && <span className="text-xs font-bold text-indigo-600">★</span>}
+                              </div>
+                              <span className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded ${
+                                camera.status === 'Down' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
                               }`}>
                                 {camera.status}
                               </span>
                             </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                      </div>
+                      );
+                    })()}
 
-                {/* Reason for Down */}
-                <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-4 border-yellow-500 rounded-2xl p-8 shadow-xl">
-                  <h4 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                    <svg className="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    Reason for Down
-                  </h4>
-                  <p className="text-xl text-gray-900 font-bold mb-4 bg-white rounded-lg p-4 border-2 border-yellow-400">{deviceMappingData.reason}</p>
-                  {deviceMappingData.districtTotalCount > 0 && (
-                    <p className="text-base text-gray-700 mt-4 font-semibold">
-                      <span className="text-gray-900">District Status:</span> <span className="text-red-600">{deviceMappingData.districtDownCount}/{deviceMappingData.districtTotalCount}</span> cameras down
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Tree Structure */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 shadow-xl border border-gray-200">
-                  <h4 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Connection Tree
-                  </h4>
-                  
-                  {/* UPS Node */}
-                  {deviceMappingData.connectedUPS ? (
-                    <>
-                      <div className="flex justify-center mb-6">
-                        <div className={`relative border-4 rounded-2xl p-6 min-w-[450px] max-w-[600px] transform transition-all hover:scale-105 ${
-                          deviceMappingData.upsStatus === 'Down'
-                            ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-500 shadow-xl'
-                            : deviceMappingData.upsStatus === 'Up'
-                            ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-500 shadow-xl'
-                            : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-500 shadow-xl'
-                        }`}>
-                          <div className="flex items-center gap-4">
-                            <div className="relative">
-                              <div className="w-8 h-8 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center shadow-lg">
-                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                                </svg>
+                    {/* OLT Cameras List */}
+                    {deviceMappingData.connectedOLT && deviceMappingData.allCamerasOnOLT && deviceMappingData.allCamerasOnOLT.length > 0 && (
+                      <div className="bg-white rounded-lg p-4 shadow border border-purple-200">
+                        <h5 className="text-sm font-bold text-purple-900 mb-3 flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                          Cameras on OLT {deviceMappingData.connectedOLT}
+                        </h5>
+                        <div className="max-h-48 overflow-y-auto space-y-1">
+                          {deviceMappingData.allCamerasOnOLT.map((camera: any, idx: number) => (
+                            <div key={idx} className={`flex items-center justify-between px-3 py-2 rounded-lg border transition-colors ${
+                              camera.isSelected
+                                ? 'bg-indigo-50 border-indigo-300 shadow-sm'
+                                : camera.status === 'Down'
+                                ? 'bg-red-50 border-red-200 hover:bg-red-100'
+                                : 'bg-green-50 border-green-200 hover:bg-green-100'
+                            }`}>
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <div className={`w-2 h-2 rounded-full ${camera.isSelected ? 'bg-indigo-500' : 'bg-purple-500'} flex-shrink-0`}></div>
+                                <p className="text-xs font-mono text-gray-900 truncate" title={camera.name}>{camera.ip}</p>
+                                {camera.isSelected && <span className="text-xs font-bold text-indigo-600">★</span>}
                               </div>
+                              <span className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded ${
+                                camera.status === 'Down' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+                              }`}>
+                                {camera.status}
+                              </span>
                             </div>
-                            <div className="flex-1">
-                              <p className="font-bold text-xl text-gray-900 mb-2">{deviceMappingData.upsName}</p>
-                              <p className="text-base text-gray-700 font-medium">IP: {deviceMappingData.connectedUPS}</p>
-                            </div>
-                            <span className={`px-5 py-2.5 text-base font-bold rounded-xl shadow-md ${
-                              deviceMappingData.upsStatus === 'Down'
-                                ? 'bg-red-600 text-white'
-                                : deviceMappingData.upsStatus === 'Up'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-600 text-white'
-                            }`}>
-                              {deviceMappingData.upsStatus}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Connection Line with SVG */}
-                      <div className="flex justify-center mb-6">
-                        <svg width="4" height="60" className="text-gray-400">
-                          <line x1="2" y1="0" x2="2" y2="60" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                        </svg>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-lg text-gray-500 text-center py-8">No UPS mapped to this camera</p>
-                  )}
-
-                  {/* Camera Nodes */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {deviceMappingData.allCamerasOnUPS && deviceMappingData.allCamerasOnUPS.length > 0 ? (
-                      deviceMappingData.allCamerasOnUPS.map((camera: any, idx: number) => (
-                        <div key={idx} className={`relative group border-3 rounded-xl p-5 transition-all hover:shadow-lg ${
-                          camera.status === 'Down'
-                            ? camera.isSelected
-                              ? 'bg-gradient-to-br from-red-100 to-red-200 border-red-500 ring-4 ring-red-300 shadow-xl'
-                              : 'bg-gradient-to-br from-red-50 to-red-100 border-red-400'
-                            : camera.status === 'Up'
-                            ? camera.isSelected
-                              ? 'bg-gradient-to-br from-green-100 to-green-200 border-green-500 ring-4 ring-green-300 shadow-xl'
-                              : 'bg-gradient-to-br from-green-50 to-green-100 border-green-400'
-                            : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-400'
-                        }`}>
-                          <div className="flex items-start gap-3 mb-3">
-                            <div className="w-5 h-5 rounded-full bg-blue-500 flex-shrink-0 mt-1 shadow-md flex items-center justify-center">
-                              <div className="w-2 h-2 rounded-full bg-white"></div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-base text-gray-900 break-words leading-tight">
-                                {camera.name}
-                                {camera.isSelected && <span className="ml-2 text-sm text-blue-600 font-bold">(Selected)</span>}
-                              </p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-700 ml-8 mb-3 font-medium">IP: {camera.ip}</p>
-                          <div className="ml-8">
-                            <span className={`px-3 py-1.5 text-sm font-bold rounded-lg shadow-sm ${
-                              camera.status === 'Down'
-                                ? 'bg-red-600 text-white'
-                                : camera.status === 'Up'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-600 text-white'
-                            }`}>
-                              {camera.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className={`border-3 rounded-xl p-5 bg-gradient-to-br from-red-50 to-red-100 border-red-400 shadow-md`}>
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="w-5 h-5 rounded-full bg-blue-500 flex-shrink-0 mt-1 shadow-md flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-white"></div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-base text-gray-900 break-words leading-tight">{deviceMappingData.cameraName}</p>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-700 ml-8 mb-3 font-medium">IP: {deviceMappingData.cameraIP}</p>
-                        <div className="ml-8">
-                          <span className="px-3 py-1.5 text-sm font-bold rounded-lg shadow-sm bg-red-600 text-white">
-                            Down
-                          </span>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -2365,3 +2545,4 @@ export const AndhraPradeshMap: React.FC = () => {
     </div>
   );
 };
+

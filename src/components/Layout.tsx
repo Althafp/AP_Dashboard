@@ -10,7 +10,8 @@ import {
   MapPin,
   Server,
   Activity,
-  Cpu
+  Cpu,
+  Search
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -31,6 +32,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Main Dashboard' },
     { path: '/map', icon: MapPin, label: 'Map' },
+    { path: '/search', icon: Search, label: 'Search' },
     { path: '/overview', icon: LayoutDashboard, label: 'Overview' },
     { path: '/monitors', icon: Monitor, label: 'IP devices' },
     { path: '/performance', icon: LineChart, label: 'Performance' },

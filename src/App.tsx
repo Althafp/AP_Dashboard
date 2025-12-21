@@ -16,6 +16,7 @@ import { Alerts } from './pages/Alerts';
 import { ServerUtilization } from './pages/ServerUtilization';
 import { LiveUtilization } from './pages/LiveUtilization';
 import { CpuUtilization } from './pages/CpuUtilization';
+import SearchMap from './pages/SearchMap';
 
 function App() {
   return (
@@ -149,6 +150,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <CpuUtilization />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SearchMap />
                 </Layout>
               </ProtectedRoute>
             }

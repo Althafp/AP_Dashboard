@@ -7,7 +7,7 @@ Your dashboard is now configured to match your `test_api.py` exactly:
 | Setting | Python Script | Dashboard (Fixed) |
 |---------|--------------|-------------------|
 | **Protocol** | `https://` | ✅ `https://` |
-| **IP Address** | `223.196.186.236` | ✅ `223.196.186.236` |
+| **IP Address** | `172.30.113.15` | ✅ `172.30.113.15` |
 | **Path** | `/api/v1` | ✅ `/api/v1` |
 | **Bearer Token** | Embedded in code | ✅ **Hardcoded in Login.tsx** |
 
@@ -58,7 +58,7 @@ const DEFAULT_BEARER_TOKEN = "your_token_here";
 
 ### File: `src/services/api.ts`
 ```typescript
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://223.196.186.236/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://172.30.113.15/api/v1';
 ```
 ✅ API URL matches your Python script
 
@@ -66,7 +66,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://223.196.186.2
 
 Open browser console (F12) after starting the app to see:
 ```
-API Base URL: https://223.196.186.236/api/v1
+API Base URL: https://172.30.113.15/api/v1
 Bearer Token: eyJ0eXAiOiJKV1Q...
 ```
 
@@ -90,7 +90,7 @@ Or try accessing from the same network as your API server.
 
 **Solution:** The dashboard handles self-signed certificates automatically.
 
-If you still see errors, visit `https://223.196.186.236` in your browser first and accept the certificate.
+If you still see errors, visit `https://172.30.113.15` in your browser first and accept the certificate.
 
 ### Issue: Token Not Working
 **Check:**

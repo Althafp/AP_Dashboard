@@ -828,6 +828,61 @@ export function gpuApiPlugin() {
           res.end(JSON.stringify({ error: error.message }));
         }
       });
+
+      // OLT Status API Proxy
+      // Proxies the external OLT status API to avoid CORS issues
+      // GET /api/olt-status?olt_no=172.16.245.199
+      server.middlewares.use('/api/olt-status', async (req, res, next) => {
+        if (req.method !== 'GET') {
+          res.statusCode = 405;
+          res.end('Method not allowed');
+          return;
+        }
+
+        try {
+          // Parse query parameters
+          const url = new URL(req.url, `http://${req.headers.host}`);
+          const oltNo = url.searchParams.get('olt_no');
+
+          if (!oltNo) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'Missing olt_no parameter' }));
+            return;
+          }
+
+          console.log(`[OLT-API] Checking status for OLT: ${oltNo}`);
+
+          // Import node-fetch for server-side fetch
+          const fetch = (await import('node-fetch')).default;
+          const FormData = (await import('form-data')).default;
+
+          // Create FormData and append olt_no
+          const formData = new FormData();
+          formData.append('olt_no', oltNo);
+
+          // Make POST request to external OLT API
+          const response = await fetch('https://enterprise.apsfl.in/monitor/Ems/managedelementmgr', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              ...formData.getHeaders()
+            },
+            body: formData
+          });
+
+          const data = await response.json();
+          console.log(`[OLT-API] Response for ${oltNo}:`, data);
+
+          // Return the API response
+          res.setHeader('Content-Type', 'application/json');
+          res.statusCode = 200;
+          res.end(JSON.stringify(data));
+        } catch (error) {
+          console.error('[OLT-API] Error:', error);
+          res.statusCode = 500;
+          res.end(JSON.stringify({ error: error.message }));
+        }
+      });
     },
   };
 }

@@ -201,9 +201,9 @@ server {
 
     # Proxy API requests to backend
     location /api {
-        proxy_pass https://223.196.186.236/api/v1;
+        proxy_pass https://172.30.113.15/api/v1;
         proxy_ssl_verify off;  # Bypass SSL certificate validation
-        proxy_set_header Host 223.196.186.236;
+        proxy_set_header Host 172.30.113.15;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
