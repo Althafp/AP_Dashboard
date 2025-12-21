@@ -553,7 +553,17 @@ function getDataFromLocal(fileName, isGPU = true) {
 export function gpuApiPlugin() {
   return {
     name: 'gpu-api-plugin',
-    configureServer(server) {
+    async configureServer(server) {
+      // Health check endpoint
+      server.middlewares.use('/health', async (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.statusCode = 200;
+        res.end(JSON.stringify({
+          status: 'ok',
+          timestamp: new Date().toISOString()
+        }, null, 2));
+      });
+
       server.middlewares.use('/api/gpu-usage', async (req, res, next) => {
         if (req.method !== 'GET') {
           res.statusCode = 405;
@@ -709,6 +719,7 @@ export function gpuApiPlugin() {
       });
 
       // GPU Stats from JSON file on remote server (Server Utilization page)
+      // Reads from gpu_stats_andhra.json which contains districts: srikakulam, guntur, kadapa
       server.middlewares.use('/api/gpu-stats', async (req, res, next) => {
         if (req.method !== 'GET') {
           res.statusCode = 405;
@@ -717,7 +728,7 @@ export function gpuApiPlugin() {
         }
 
         try {
-          const jsonPath = '/opt/gpu_monitor/data/gpu_stats_srikakulam.json';
+          const jsonPath = '/opt/gpu_monitor/data/gpu_stats_andhra.json';
           
           console.log(`[GPU-Stats] Connecting to ${GPU_STATS_SSH_CONFIG.host} to read ${jsonPath}...`);
           

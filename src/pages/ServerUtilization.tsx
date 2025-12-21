@@ -1,27 +1,38 @@
 import React, { useEffect, useState } from 'react';
 
+interface GPUData {
+  index: string;
+  uuid: string;
+  name: string;
+  'utilization.gpu': string;
+  'utilization.memory': string;
+  'memory.used': string;
+  'memory.total': string;
+  'temperature.gpu': string;
+  'power.draw': string;
+  'fan.speed': string;
+}
+
+interface NodeData {
+  ip: string;
+  status: 'ok' | 'error';
+  gpu_count?: number;
+  gpus?: GPUData[];
+  error?: string;
+}
+
+interface DistrictData {
+  [district: string]: NodeData[];
+}
+
+interface Record {
+  timestamp: string;
+  districts: DistrictData;
+}
+
 interface GPUStats {
-  district: string;
-  records: Array<{
-    timestamp: string;
-    nodes: Array<{
-      node: string;
-      status: string;
-      gpu_count: number;
-      gpus: Array<{
-        index: string;
-        uuid: string;
-        name: string;
-        'utilization.gpu': string;
-        'utilization.memory': string;
-        'memory.used': string;
-        'memory.total': string;
-        'temperature.gpu': string;
-        'power.draw': string;
-        'fan.speed': string;
-      }>;
-    }>;
-  }>;
+  state: string;
+  records: Record[];
 }
 
 interface GPUAverages {
@@ -54,6 +65,10 @@ export const ServerUtilization: React.FC = () => {
   const [gpuAverages, setGpuAverages] = useState<GPUAverages[]>([]);
   const [nodeSummaries, setNodeSummaries] = useState<NodeSummary[]>([]);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<[string, string]>(['', '']);
+  const [availableDistricts, setAvailableDistricts] = useState<string[]>([]);
+  const [availableTimestamps, setAvailableTimestamps] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -69,6 +84,43 @@ export const ServerUtilization: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (gpuStats) {
+      // Extract available districts from gpu_stats_andhra.json
+      // Districts: srikakulam, guntur, kadapa (and any others present in JSON)
+      const districts = new Set<string>();
+      gpuStats.records.forEach(record => {
+        if (record.districts && typeof record.districts === 'object') {
+          Object.keys(record.districts).forEach(district => {
+            districts.add(district);
+          });
+        }
+      });
+      setAvailableDistricts(Array.from(districts).sort());
+
+      // Extract available timestamps
+      const timestamps = gpuStats.records.map(r => r.timestamp).sort();
+      setAvailableTimestamps(timestamps);
+
+      // Set default time range to all available timestamps
+      if (timestamps.length > 0 && selectedTimeRange[0] === '') {
+        setSelectedTimeRange([timestamps[0], timestamps[timestamps.length - 1]]);
+      }
+    }
+  }, [gpuStats]);
+
+  useEffect(() => {
+    if (gpuStats && selectedTimeRange[0] && selectedTimeRange[1]) {
+      const { gpuAverages: averages, nodeSummaries: summaries } = calculateAverages(
+        gpuStats,
+        selectedDistrict,
+        selectedTimeRange
+      );
+      setGpuAverages(averages);
+      setNodeSummaries(summaries);
+    }
+  }, [gpuStats, selectedDistrict, selectedTimeRange]);
 
   const loadGPUStats = async (isAutoRefresh = false) => {
     try {
@@ -87,9 +139,6 @@ export const ServerUtilization: React.FC = () => {
 
       const data: GPUStats = await response.json();
       setGpuStats(data);
-      const { gpuAverages: averages, nodeSummaries: summaries } = calculateAverages(data);
-      setGpuAverages(averages);
-      setNodeSummaries(summaries);
       setLastUpdate(new Date());
     } catch (error: any) {
       console.error('Error loading GPU stats:', error);
@@ -100,7 +149,17 @@ export const ServerUtilization: React.FC = () => {
     }
   };
 
-  const calculateAverages = (data: GPUStats) => {
+  const calculateAverages = (
+    data: GPUStats,
+    district: string,
+    timeRange: [string, string]
+  ) => {
+    // Filter records by time range
+    const filteredRecords = data.records.filter(record => {
+      const timestamp = record.timestamp;
+      return timestamp >= timeRange[0] && timestamp <= timeRange[1];
+    });
+
     // Map to store GPU data by node+index+uuid (unique GPU identifier)
     const gpuMap = new Map<string, {
       node: string;
@@ -126,66 +185,84 @@ export const ServerUtilization: React.FC = () => {
       powerDraws: number[];
     }>();
 
-    // Iterate through all records (timestamps)
-    data.records.forEach(record => {
-      // Iterate through all nodes
-      record.nodes.forEach(nodeData => {
-        // Initialize node summary if not exists
-        if (!nodeMap.has(nodeData.node)) {
-          nodeMap.set(nodeData.node, {
-            node: nodeData.node,
-            status: nodeData.status,
-            gpuCount: nodeData.gpu_count,
-            gpuUtils: [],
-            memUtils: [],
-            temperatures: [],
-            powerDraws: []
-          });
-        }
+    // Iterate through filtered records
+    filteredRecords.forEach(record => {
+      // Skip if districts is missing or null
+      if (!record.districts || typeof record.districts !== 'object') {
+        return;
+      }
 
-        const nodeSummary = nodeMap.get(nodeData.node)!;
+      // Filter districts
+      const districtsToProcess = district === 'all' 
+        ? Object.keys(record.districts)
+        : [district];
 
-        // Iterate through all GPUs in this node
-        nodeData.gpus.forEach(gpu => {
-          const key = `${nodeData.node}-${gpu.index}-${gpu.uuid}`;
-          
-          if (!gpuMap.has(key)) {
-            gpuMap.set(key, {
-              node: nodeData.node,
-              index: gpu.index,
-              uuid: gpu.uuid,
-              name: gpu.name,
+      districtsToProcess.forEach(districtName => {
+        const nodes = record.districts[districtName] || [];
+        
+        nodes.forEach(nodeData => {
+          // Skip error nodes
+          if (nodeData.status !== 'ok' || !nodeData.gpus) {
+            return;
+          }
+
+          // Initialize node summary if not exists
+          if (!nodeMap.has(nodeData.ip)) {
+            nodeMap.set(nodeData.ip, {
+              node: nodeData.ip,
+              status: nodeData.status,
+              gpuCount: nodeData.gpu_count || 0,
               gpuUtils: [],
               memUtils: [],
-              memoryUsed: [],
-              memoryTotal: [],
               temperatures: [],
               powerDraws: []
             });
           }
 
-          const gpuData = gpuMap.get(key)!;
-          
-          // Parse and add values
-          const gpuUtil = parseFloat(gpu['utilization.gpu']) || 0;
-          const memUtil = parseFloat(gpu['utilization.memory']) || 0;
-          const memUsed = parseFloat(gpu['memory.used']) || 0;
-          const memTotal = parseFloat(gpu['memory.total']) || 0;
-          const temp = parseFloat(gpu['temperature.gpu']) || 0;
-          const power = parseFloat(gpu['power.draw']) || 0;
+          const nodeSummary = nodeMap.get(nodeData.ip)!;
 
-          gpuData.gpuUtils.push(gpuUtil);
-          gpuData.memUtils.push(memUtil);
-          gpuData.memoryUsed.push(memUsed);
-          gpuData.memoryTotal.push(memTotal);
-          gpuData.temperatures.push(temp);
-          gpuData.powerDraws.push(power);
+          // Iterate through all GPUs in this node
+          nodeData.gpus.forEach(gpu => {
+            const key = `${nodeData.ip}-${gpu.index}-${gpu.uuid}`;
+            
+            if (!gpuMap.has(key)) {
+              gpuMap.set(key, {
+                node: nodeData.ip,
+                index: gpu.index,
+                uuid: gpu.uuid,
+                name: gpu.name,
+                gpuUtils: [],
+                memUtils: [],
+                memoryUsed: [],
+                memoryTotal: [],
+                temperatures: [],
+                powerDraws: []
+              });
+            }
 
-          // Add to node summary
-          nodeSummary.gpuUtils.push(gpuUtil);
-          nodeSummary.memUtils.push(memUtil);
-          nodeSummary.temperatures.push(temp);
-          nodeSummary.powerDraws.push(power);
+            const gpuData = gpuMap.get(key)!;
+            
+            // Parse and add values
+            const gpuUtil = parseFloat(gpu['utilization.gpu']) || 0;
+            const memUtil = parseFloat(gpu['utilization.memory']) || 0;
+            const memUsed = parseFloat(gpu['memory.used']) || 0;
+            const memTotal = parseFloat(gpu['memory.total']) || 0;
+            const temp = parseFloat(gpu['temperature.gpu']) || 0;
+            const power = parseFloat(gpu['power.draw']) || 0;
+
+            gpuData.gpuUtils.push(gpuUtil);
+            gpuData.memUtils.push(memUtil);
+            gpuData.memoryUsed.push(memUsed);
+            gpuData.memoryTotal.push(memTotal);
+            gpuData.temperatures.push(temp);
+            gpuData.powerDraws.push(power);
+
+            // Add to node summary
+            nodeSummary.gpuUtils.push(gpuUtil);
+            nodeSummary.memUtils.push(memUtil);
+            nodeSummary.temperatures.push(temp);
+            nodeSummary.powerDraws.push(power);
+          });
         });
       });
     });
@@ -260,6 +337,22 @@ export const ServerUtilization: React.FC = () => {
     return { gpuAverages: averages, nodeSummaries: summaries };
   };
 
+  const formatTimestamp = (timestamp: string): string => {
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } catch {
+      return timestamp;
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -267,13 +360,81 @@ export const ServerUtilization: React.FC = () => {
         <p className="text-gray-600">GPU statistics from remote server (172.30.51.72)</p>
       </div>
 
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* District Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              District
+            </label>
+            <select
+              value={selectedDistrict}
+              onChange={(e) => setSelectedDistrict(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Districts</option>
+              {availableDistricts.map(district => (
+                <option key={district} value={district}>
+                  {district.split(' ').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                  ).join(' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Start Time Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Start Time
+            </label>
+            <select
+              value={selectedTimeRange[0]}
+              onChange={(e) => setSelectedTimeRange([e.target.value, selectedTimeRange[1]])}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled={availableTimestamps.length === 0}
+            >
+              <option value="">Select start time</option>
+              {availableTimestamps.map(timestamp => (
+                <option key={timestamp} value={timestamp}>
+                  {formatTimestamp(timestamp)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* End Time Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              End Time
+            </label>
+            <select
+              value={selectedTimeRange[1]}
+              onChange={(e) => setSelectedTimeRange([selectedTimeRange[0], e.target.value])}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled={availableTimestamps.length === 0}
+            >
+              <option value="">Select end time</option>
+              {availableTimestamps
+                .filter(ts => !selectedTimeRange[0] || ts >= selectedTimeRange[0])
+                .map(timestamp => (
+                  <option key={timestamp} value={timestamp}>
+                    {formatTimestamp(timestamp)}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Status Bar */}
       <div className="bg-white rounded-lg shadow p-4 mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div>
-            <p className="text-sm text-gray-600">District</p>
+            <p className="text-sm text-gray-600">State</p>
             <p className="text-lg font-semibold text-gray-900">
-              {gpuStats?.district?.toUpperCase() || 'Loading...'}
+              {gpuStats?.state?.toUpperCase().replace('_', ' ') || 'Loading...'}
             </p>
           </div>
           {lastUpdate && (
@@ -297,6 +458,14 @@ export const ServerUtilization: React.FC = () => {
               <p className="text-sm text-gray-600">Selected Node</p>
               <p className="text-lg font-semibold text-blue-600">
                 {selectedNode}
+              </p>
+            </div>
+          )}
+          {selectedTimeRange[0] && selectedTimeRange[1] && (
+            <div>
+              <p className="text-sm text-gray-600">Time Range</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {formatTimestamp(selectedTimeRange[0])} - {formatTimestamp(selectedTimeRange[1])}
               </p>
             </div>
           )}
@@ -452,86 +621,86 @@ export const ServerUtilization: React.FC = () => {
                   key={`${gpu.node}-${gpu.index}-${gpu.uuid}`}
                   className="bg-white rounded-lg shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow"
                 >
-              {/* Header */}
-              <div className="mb-4 pb-4 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold text-gray-900">GPU {gpu.index}</h3>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                    {gpu.name}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600">Node: {gpu.node}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {gpu.dataPoints} data point{gpu.dataPoints !== 1 ? 's' : ''}
-                </p>
-              </div>
-
-              {/* Metrics */}
-              <div className="space-y-3">
-                {/* GPU Utilization */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-gray-700">GPU Utilization</span>
-                    <span className="text-sm font-bold text-gray-900">
-                      {gpu.avgGpuUtil.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all"
-                      style={{ width: `${Math.min(gpu.avgGpuUtil, 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Memory Utilization */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-gray-700">Memory Utilization</span>
-                    <span className="text-sm font-bold text-gray-900">
-                      {gpu.avgMemUtil.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green-600 h-2 rounded-full transition-all"
-                      style={{ width: `${Math.min(gpu.avgMemUtil, 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Memory Details */}
-                <div className="pt-2 border-t border-gray-100">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Memory Used</span>
-                    <span className="font-semibold text-gray-900">
-                      {gpu.avgMemoryUsed.toFixed(0)} MB
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Memory Total</span>
-                    <span className="font-semibold text-gray-900">
-                      {gpu.avgMemoryTotal.toFixed(0)} MB
-                    </span>
-                  </div>
-                </div>
-
-                {/* Temperature & Power */}
-                <div className="pt-2 border-t border-gray-100 grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Temperature</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      {gpu.avgTemperature.toFixed(1)}°C
+                  {/* Header */}
+                  <div className="mb-4 pb-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-bold text-gray-900">GPU {gpu.index}</h3>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {gpu.name}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">Node: {gpu.node}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {gpu.dataPoints} data point{gpu.dataPoints !== 1 ? 's' : ''}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Power Draw</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      {gpu.avgPowerDraw.toFixed(2)} W
-                    </p>
+
+                  {/* Metrics */}
+                  <div className="space-y-3">
+                    {/* GPU Utilization */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium text-gray-700">GPU Utilization</span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {gpu.avgGpuUtil.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all"
+                          style={{ width: `${Math.min(gpu.avgGpuUtil, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Memory Utilization */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium text-gray-700">Memory Utilization</span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {gpu.avgMemUtil.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-600 h-2 rounded-full transition-all"
+                          style={{ width: `${Math.min(gpu.avgMemUtil, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Memory Details */}
+                    <div className="pt-2 border-t border-gray-100">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-600">Memory Used</span>
+                        <span className="font-semibold text-gray-900">
+                          {gpu.avgMemoryUsed.toFixed(0)} MB
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Memory Total</span>
+                        <span className="font-semibold text-gray-900">
+                          {gpu.avgMemoryTotal.toFixed(0)} MB
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Temperature & Power */}
+                    <div className="pt-2 border-t border-gray-100 grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Temperature</p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {gpu.avgTemperature.toFixed(1)}°C
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600 mb-1">Power Draw</p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {gpu.avgPowerDraw.toFixed(2)} W
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
                 </div>
               ))}
           </div>
@@ -539,9 +708,19 @@ export const ServerUtilization: React.FC = () => {
       )}
 
       {/* Empty State */}
-      {!loading && gpuAverages.length === 0 && !error && (
+      {!loading && nodeSummaries.length === 0 && !error && selectedTimeRange[0] && selectedTimeRange[1] && (
         <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-600 text-lg">No GPU data available</p>
+          <p className="text-gray-600 text-lg">No GPU data available for the selected filters</p>
+          <p className="text-gray-500 text-sm mt-2">
+            Try selecting a different district or time range
+          </p>
+        </div>
+      )}
+
+      {/* No Time Range Selected */}
+      {!loading && (!selectedTimeRange[0] || !selectedTimeRange[1]) && (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <p className="text-gray-600 text-lg">Please select a time range to view GPU statistics</p>
         </div>
       )}
     </div>
