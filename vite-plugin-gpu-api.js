@@ -61,6 +61,14 @@ const LPU_SSH_CONFIG = {
   password: 'root',
 };
 
+// SSH config for GPU stats server (Server Utilization page)
+const GPU_STATS_SSH_CONFIG = {
+  host: '172.30.51.72',
+  port: 22,
+  username: 'root',
+  password: 'M@t61x!@143', // Will be set by user
+};
+
 const GPU_FILE_PATH = '/opt/gpu_usage.csv';
 const CPU_FILE_PATH = '/opt/cpu_usage.csv';
 const GPU_LOCAL_FILE_PATH = path.join(__dirname, 'public', 'gpu_usage.csv');
@@ -695,6 +703,78 @@ export function gpuApiPlugin() {
           }
         } catch (error) {
           console.error('❌ Error with host utilization:', error);
+          res.statusCode = 500;
+          res.end(JSON.stringify({ error: error.message }));
+        }
+      });
+
+      // GPU Stats from JSON file on remote server (Server Utilization page)
+      server.middlewares.use('/api/gpu-stats', async (req, res, next) => {
+        if (req.method !== 'GET') {
+          res.statusCode = 405;
+          res.end('Method not allowed');
+          return;
+        }
+
+        try {
+          const jsonPath = '/opt/gpu_monitor/data/gpu_stats_srikakulam.json';
+          
+          console.log(`[GPU-Stats] Connecting to ${GPU_STATS_SSH_CONFIG.host} to read ${jsonPath}...`);
+          
+          const jsonContent = await new Promise((resolve, reject) => {
+            const conn = new Client();
+            
+            conn.on('ready', () => {
+              const command = `cat ${jsonPath}`;
+              conn.exec(command, (err, stream) => {
+                if (err) {
+                  conn.end();
+                  reject(err);
+                  return;
+                }
+
+                let fileContent = '';
+                let errorOutput = '';
+
+                stream
+                  .on('close', (code) => {
+                    conn.end();
+                    if (code !== 0) {
+                      reject(new Error(`Command failed: ${errorOutput}`));
+                    } else {
+                      try {
+                        const jsonData = JSON.parse(fileContent);
+                        resolve(jsonData);
+                      } catch (parseError) {
+                        reject(new Error(`Failed to parse JSON: ${parseError.message}`));
+                      }
+                    }
+                  })
+                  .on('data', (data) => {
+                    fileContent += data.toString();
+                  })
+                  .stderr.on('data', (data) => {
+                    errorOutput += data.toString();
+                  });
+              });
+            });
+
+            conn.on('error', (err) => {
+              console.error(`[GPU-Stats] SSH connection error: ${err.message}`);
+              reject(new Error(`SSH connection error: ${err.message}`));
+            });
+
+            conn.connect(GPU_STATS_SSH_CONFIG);
+          });
+
+          console.log(`[GPU-Stats] ✅ Successfully fetched GPU stats data`);
+          
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'no-cache');
+          res.statusCode = 200;
+          res.end(JSON.stringify(jsonContent, null, 2));
+        } catch (error) {
+          console.error('❌ Error fetching GPU stats:', error);
           res.statusCode = 500;
           res.end(JSON.stringify({ error: error.message }));
         }
