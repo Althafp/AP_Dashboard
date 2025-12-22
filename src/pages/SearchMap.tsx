@@ -1081,17 +1081,61 @@ const SearchMap: React.FC = () => {
                     <div className="relative">
                       {/* SVG for connection lines */}
                       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
-                        {deviceMappingData.connectedUPS && (
-                          <line x1="15%" y1="50%" x2="45%" y2="50%" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
+                        {/* Line from OLT to UPS */}
+                        {deviceMappingData.connectedOLT && deviceMappingData.connectedUPS && (
+                          <line x1="15%" y1="50%" x2="45%" y2="50%" stroke="#9333ea" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
                         )}
-                        {deviceMappingData.connectedOLT && (
-                          <line x1="55%" y1="50%" x2="85%" y2="50%" stroke="#9333ea" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
+                        {/* Line from UPS to Camera */}
+                        {deviceMappingData.connectedUPS && (
+                          <line x1="55%" y1="50%" x2="85%" y2="50%" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
                         )}
                       </svg>
 
                       <div className="relative grid grid-cols-3 gap-6 items-center" style={{ zIndex: 1 }}>
                         
-                        {/* LEFT: UPS Node */}
+                        {/* LEFT: OLT Node */}
+                        <div className="flex flex-col items-center">
+                          {deviceMappingData.connectedOLT ? (
+                            <>
+                              <div className="relative group">
+                                <div className={`w-28 h-28 rounded-2xl border-4 shadow-xl flex flex-col items-center justify-center cursor-help transition-transform hover:scale-110 ${
+                                  deviceMappingData.oltStatus === 'Down'
+                                    ? 'bg-gradient-to-br from-red-400 to-red-600 border-red-700'
+                                    : deviceMappingData.oltStatus === 'Up'
+                                    ? 'bg-gradient-to-br from-purple-400 to-purple-600 border-purple-700'
+                                    : 'bg-gradient-to-br from-gray-400 to-gray-600 border-gray-700'
+                                }`}>
+                                  <svg className="w-12 h-12 text-white mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                  </svg>
+                                  <p className="text-xs font-bold text-white">OLT</p>
+                                </div>
+                                <div className="absolute hidden group-hover:block z-50 top-full mt-2 left-1/2 transform -translate-x-1/2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-2xl">
+                                  <p className="font-bold mb-1">OLT {deviceMappingData.connectedOLT}</p>
+                                  <p>PON Port: {deviceMappingData.oltPonPort || 'N/A'}</p>
+                                  <p className="mt-2">Status: <span className={deviceMappingData.oltStatus === 'Up' ? 'text-green-400' : 'text-red-400'}>{deviceMappingData.oltStatus}</span></p>
+                                  {deviceMappingData.oltLastUpTime && <p className="mt-1 text-green-300 text-xs">↑ {deviceMappingData.oltLastUpTime}</p>}
+                                  {deviceMappingData.oltLastDownTime && <p className="text-red-300 text-xs">↓ {deviceMappingData.oltLastDownTime}</p>}
+                                </div>
+                              </div>
+                              <div className="mt-3 text-center">
+                                <p className="text-xs font-semibold text-gray-700">{deviceMappingData.connectedOLT}</p>
+                                <span className={`inline-block mt-1 px-2 py-1 text-xs font-bold rounded ${
+                                  deviceMappingData.oltStatus === 'Down' ? 'bg-red-600 text-white' :
+                                  deviceMappingData.oltStatus === 'Up' ? 'bg-purple-600 text-white' : 'bg-gray-600 text-white'
+                                }`}>
+                                  {deviceMappingData.oltStatus}
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="w-28 h-28 rounded-2xl border-4 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
+                              <p className="text-xs text-gray-400 text-center">No OLT</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* CENTER: UPS Node */}
                         <div className="flex flex-col items-center">
                           {deviceMappingData.connectedUPS ? (
                             <>
@@ -1132,7 +1176,7 @@ const SearchMap: React.FC = () => {
                           )}
                         </div>
 
-                        {/* CENTER: Camera */}
+                        {/* RIGHT: Camera */}
                         <div className="flex flex-col items-center">
                           <div className="relative">
                             <div className="w-32 h-32 rounded-3xl border-4 border-indigo-500 shadow-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex flex-col items-center justify-center ring-4 ring-indigo-200 animate-pulse">
@@ -1153,48 +1197,6 @@ const SearchMap: React.FC = () => {
                               {deviceMappingData.cameraStatus}
                             </span>
                           </div>
-                        </div>
-
-                        {/* RIGHT: OLT Node */}
-                        <div className="flex flex-col items-center">
-                          {deviceMappingData.connectedOLT ? (
-                            <>
-                              <div className="relative group">
-                                <div className={`w-28 h-28 rounded-2xl border-4 shadow-xl flex flex-col items-center justify-center cursor-help transition-transform hover:scale-110 ${
-                                  deviceMappingData.oltStatus === 'Down'
-                                    ? 'bg-gradient-to-br from-red-400 to-red-600 border-red-700'
-                                    : deviceMappingData.oltStatus === 'Up'
-                                    ? 'bg-gradient-to-br from-purple-400 to-purple-600 border-purple-700'
-                                    : 'bg-gradient-to-br from-gray-400 to-gray-600 border-gray-700'
-                                }`}>
-                                  <svg className="w-12 h-12 text-white mb-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                                  </svg>
-                                  <p className="text-xs font-bold text-white">OLT</p>
-                                </div>
-                                <div className="absolute hidden group-hover:block z-50 top-full mt-2 left-1/2 transform -translate-x-1/2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-2xl">
-                                  <p className="font-bold mb-1">OLT {deviceMappingData.connectedOLT}</p>
-                                  <p>PON Port: {deviceMappingData.oltPonPort || 'N/A'}</p>
-                                  <p className="mt-2">Status: <span className={deviceMappingData.oltStatus === 'Up' ? 'text-green-400' : 'text-red-400'}>{deviceMappingData.oltStatus}</span></p>
-                                  {deviceMappingData.oltLastUpTime && <p className="mt-1 text-green-300 text-xs">↑ {deviceMappingData.oltLastUpTime}</p>}
-                                  {deviceMappingData.oltLastDownTime && <p className="text-red-300 text-xs">↓ {deviceMappingData.oltLastDownTime}</p>}
-                                </div>
-                              </div>
-                              <div className="mt-3 text-center">
-                                <p className="text-xs font-semibold text-gray-700">{deviceMappingData.connectedOLT}</p>
-                                <span className={`inline-block mt-1 px-2 py-1 text-xs font-bold rounded ${
-                                  deviceMappingData.oltStatus === 'Down' ? 'bg-red-600 text-white' :
-                                  deviceMappingData.oltStatus === 'Up' ? 'bg-purple-600 text-white' : 'bg-gray-600 text-white'
-                                }`}>
-                                  {deviceMappingData.oltStatus}
-                                </span>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="w-28 h-28 rounded-2xl border-4 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
-                              <p className="text-xs text-gray-400 text-center">No OLT</p>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
