@@ -199,7 +199,7 @@ export const AndhraPradeshMap: React.FC = () => {
         // Cameras
         if (name.includes('cam')) {
           if (cameraIPs.length > 0 && cameraIPs.includes(monitorIP)) {
-            counts.Cameras++;
+          counts.Cameras++;
           }
         }
         // Servers
@@ -208,7 +208,7 @@ export const AndhraPradeshMap: React.FC = () => {
           const upperDistrictName = excelDistrictName.toUpperCase();
           const serverPrefix = upperName.split('_')[0];
           if (upperName.startsWith(upperDistrictName) || upperDistrictName.startsWith(serverPrefix)) {
-            counts.Servers++;
+          counts.Servers++;
           }
         }
         // APIs
@@ -221,8 +221,8 @@ export const AndhraPradeshMap: React.FC = () => {
             if (apiDistrictName === upperDistrictName || 
                 upperDistrictName.startsWith(apiDistrictName) ||
                 apiDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
-              counts.APIs++;
-            }
+          counts.APIs++;
+        }
           }
         }
         // GPUs: exclude "Non_GPU"
@@ -233,7 +233,7 @@ export const AndhraPradeshMap: React.FC = () => {
           if (gpuDistrictName === upperDistrictName || 
               upperDistrictName.startsWith(gpuDistrictName) ||
               gpuDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
-            counts.GPUs++;
+          counts.GPUs++;
           }
         }
         // UPS
@@ -248,8 +248,8 @@ export const AndhraPradeshMap: React.FC = () => {
               if (upsDistrictName === upperDistrictName || 
                   upperDistrictName.startsWith(upsDistrictName) ||
                   upsDistrictName.startsWith(upperDistrictName.split(' ')[0])) {
-                counts.UPS++;
-              }
+          counts.UPS++;
+        }
             } else {
               const normalizedDistrict = upperDistrictName.replace(/\s+/g, '');
               if (upsCode === normalizedDistrict || normalizedDistrict.startsWith(upsCode)) {
@@ -2079,25 +2079,25 @@ export const AndhraPradeshMap: React.FC = () => {
         <div className="fixed right-0 top-0 bottom-0 w-[calc(100%-16rem)] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-300">
           {/* Panel Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
-            <div>
+              <div>
               <h3 className="text-xl font-bold text-gray-900">
-                Down {selectedDeviceType}
-                {selectedDistrict && ` - ${getDistrictDisplayName(selectedDistrict)}`}
-              </h3>
+                  Down {selectedDeviceType}
+                  {selectedDistrict && ` - ${getDistrictDisplayName(selectedDistrict)}`}
+                </h3>
               <p className="text-sm text-gray-600 mt-1">
-                Total: {downDevicesList.length} device{downDevicesList.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setShowDownList(false);
-                setDownDevicesList([]);
-              }}
+                  Total: {downDevicesList.length} device{downDevicesList.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDownList(false);
+                  setDownDevicesList([]);
+                }}
               className="text-gray-400 hover:text-gray-600 text-3xl font-bold hover:bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-            >
-              ×
-            </button>
-          </div>
+              >
+                ×
+              </button>
+            </div>
 
           {/* Panel Body */}
           <div className="flex-1 overflow-y-auto p-6">
@@ -2132,19 +2132,19 @@ export const AndhraPradeshMap: React.FC = () => {
                       // Camera/other format
                       timestamp = device.timestamp || device['object.timestamp'] || device['event.timestamp'] || device.eventTimestamp;
                       lastCheckTime = device.lastTriggered || 
-                                     device['last.triggered'] || 
-                                     device['object.last.triggered'] || 
-                                     device['event.last.triggered'] || 
-                                     device['object.last.poll.time'] || 
-                                     device['last.poll.time'] || 
-                                     device['lastTriggered'] || 
-                                     device['lastTriggeredTime'] ||
-                                     device['lastPollTime'] ||
-                                     device['object.lastPollTime'] ||
-                                     device['lastUpdateTime'] ||
-                                     device['object.lastUpdateTime'] ||
-                                     device['modification.time'] ||
-                                     device['object.modification.time'];
+                                         device['last.triggered'] || 
+                                         device['object.last.triggered'] || 
+                                         device['event.last.triggered'] || 
+                                         device['object.last.poll.time'] || 
+                                         device['last.poll.time'] || 
+                                         device['lastTriggered'] || 
+                                         device['lastTriggeredTime'] ||
+                                         device['lastPollTime'] ||
+                                         device['object.lastPollTime'] ||
+                                         device['lastUpdateTime'] ||
+                                         device['object.lastUpdateTime'] ||
+                                         device['modification.time'] ||
+                                         device['object.modification.time'];
                     }
                     
                     // Debug: log the values to understand the data structure (only first device)
@@ -2253,8 +2253,8 @@ export const AndhraPradeshMap: React.FC = () => {
                   })}
                 </div>
               )}
+            </div>
           </div>
-        </div>
       )}
 
       {/* Device Mapping Right Panel */}
@@ -2283,7 +2283,7 @@ export const AndhraPradeshMap: React.FC = () => {
                     ? `UPS: ${deviceMappingData.upsName} (${deviceMappingData.upsIP})`
                     : `Camera: ${deviceMappingData.cameraName} (${deviceMappingData.cameraIP})`}
                 </p>
-              </div>
+        </div>
             </div>
           </div>
 
