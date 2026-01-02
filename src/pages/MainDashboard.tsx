@@ -203,7 +203,16 @@ export const MainDashboard: React.FC = () => {
             })
           );
 
+          // Remove duplicates based on OLT IP
+          const uniqueMap = new Map<string, OLTStatus>();
           oltResults.forEach((result) => {
+            if (!uniqueMap.has(result.ip)) {
+              uniqueMap.set(result.ip, result);
+            }
+          });
+          const uniqueResults = Array.from(uniqueMap.values());
+
+          uniqueResults.forEach((result) => {
             if (result.status === 'Up') {
               olts.up++;
             } else if (result.status === 'Down') {
@@ -211,8 +220,8 @@ export const MainDashboard: React.FC = () => {
             }
           });
 
-          olts.total = oltIPs.length;
-          setOltStatuses(oltResults);
+          olts.total = uniqueResults.length;
+          setOltStatuses(uniqueResults);
         } catch (e) {
           console.error('[MainDashboard] Error computing OLT statistics', e);
         }

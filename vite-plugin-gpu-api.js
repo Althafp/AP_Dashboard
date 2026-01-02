@@ -736,7 +736,8 @@ export function gpuApiPlugin() {
             const conn = new Client();
             
             conn.on('ready', () => {
-              const command = `cat ${jsonPath}`;
+              // Suppress SSH warnings by redirecting stderr, then parse JSON
+              const command = `cat ${jsonPath} 2>/dev/null || cat ${jsonPath}`;
               conn.exec(command, (err, stream) => {
                 if (err) {
                   conn.end();
@@ -754,7 +755,21 @@ export function gpuApiPlugin() {
                       reject(new Error(`Command failed: ${errorOutput}`));
                     } else {
                       try {
-                        const jsonData = JSON.parse(fileContent);
+                        // Clean up any SSH warning messages that might have been captured
+                        // Remove lines that look like SSH warnings before parsing
+                        const cleanedContent = fileContent
+                          .split('\n')
+                          .filter(line => {
+                            const trimmed = line.trim();
+                            // Filter out SSH warning messages
+                            return !trimmed.includes('Permanently added') &&
+                                   !trimmed.includes('ECDSA') &&
+                                   !trimmed.includes('Warning:') &&
+                                   !trimmed.startsWith('Warning');
+                          })
+                          .join('\n');
+                        
+                        const jsonData = JSON.parse(cleanedContent);
                         resolve(jsonData);
                       } catch (parseError) {
                         reject(new Error(`Failed to parse JSON: ${parseError.message}`));
@@ -765,7 +780,13 @@ export function gpuApiPlugin() {
                     fileContent += data.toString();
                   })
                   .stderr.on('data', (data) => {
-                    errorOutput += data.toString();
+                    // Ignore SSH warnings in stderr
+                    const stderrText = data.toString();
+                    if (!stderrText.includes('Permanently added') && 
+                        !stderrText.includes('ECDSA') &&
+                        !stderrText.includes('Warning:')) {
+                      errorOutput += stderrText;
+                    }
                   });
               });
             });

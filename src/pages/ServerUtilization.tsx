@@ -74,6 +74,46 @@ export const ServerUtilization: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const updateAvailableTimestamps = (data: GPUStats, district: string) => {
+    const timestamps = new Set<string>();
+    
+    data.records.forEach(record => {
+      if (!record.districts || typeof record.districts !== 'object') {
+        return;
+      }
+
+      if (district === 'all') {
+        // If "All Districts" is selected, include all timestamps
+        timestamps.add(record.timestamp);
+      } else {
+        // If a specific district is selected, only include timestamps where that district has data
+        if (record.districts[district] && record.districts[district].length > 0) {
+          timestamps.add(record.timestamp);
+        }
+      }
+    });
+
+    const sortedTimestamps = Array.from(timestamps).sort();
+    setAvailableTimestamps(sortedTimestamps);
+
+    // Set default time range to all available timestamps for the selected district
+    if (sortedTimestamps.length > 0 && selectedTimeRange[0] === '') {
+      setSelectedTimeRange([sortedTimestamps[0], sortedTimestamps[sortedTimestamps.length - 1]]);
+    } else if (sortedTimestamps.length > 0) {
+      // If time range is already set, validate it's still within available timestamps
+      const currentStart = selectedTimeRange[0];
+      const currentEnd = selectedTimeRange[1];
+      
+      // If current start/end are not in available timestamps, reset to first/last
+      if (currentStart && !sortedTimestamps.includes(currentStart)) {
+        setSelectedTimeRange([sortedTimestamps[0], currentEnd || sortedTimestamps[sortedTimestamps.length - 1]]);
+      }
+      if (currentEnd && !sortedTimestamps.includes(currentEnd)) {
+        setSelectedTimeRange([currentStart || sortedTimestamps[0], sortedTimestamps[sortedTimestamps.length - 1]]);
+      }
+    }
+  };
+
   useEffect(() => {
     loadGPUStats(false);
     
@@ -99,16 +139,10 @@ export const ServerUtilization: React.FC = () => {
       });
       setAvailableDistricts(Array.from(districts).sort());
 
-      // Extract available timestamps
-      const timestamps = gpuStats.records.map(r => r.timestamp).sort();
-      setAvailableTimestamps(timestamps);
-
-      // Set default time range to all available timestamps
-      if (timestamps.length > 0 && selectedTimeRange[0] === '') {
-        setSelectedTimeRange([timestamps[0], timestamps[timestamps.length - 1]]);
-      }
+      // Extract available timestamps based on selected district
+      updateAvailableTimestamps(gpuStats, selectedDistrict);
     }
-  }, [gpuStats]);
+  }, [gpuStats, selectedDistrict]);
 
   useEffect(() => {
     if (gpuStats && selectedTimeRange[0] && selectedTimeRange[1]) {
@@ -201,8 +235,14 @@ export const ServerUtilization: React.FC = () => {
         const nodes = record.districts[districtName] || [];
         
         nodes.forEach(nodeData => {
-          // Skip error nodes
-          if (nodeData.status !== 'ok' || !nodeData.gpus) {
+          // Skip error nodes or invalid nodes
+          if (!nodeData || 
+              !nodeData.ip || 
+              nodeData.status !== 'ok' || 
+              !nodeData.gpus ||
+              nodeData.ip.includes('Warning') ||
+              nodeData.ip.includes('Permanently added') ||
+              nodeData.ip.includes('ECDSA')) {
             return;
           }
 
@@ -223,6 +263,17 @@ export const ServerUtilization: React.FC = () => {
 
           // Iterate through all GPUs in this node
           nodeData.gpus.forEach(gpu => {
+            // Skip invalid GPU entries (SSH warnings, etc.)
+            if (!gpu || 
+                !gpu.index || 
+                !gpu.uuid || 
+                !gpu.name ||
+                gpu.name.includes('Warning') ||
+                gpu.name.includes('Permanently added') ||
+                gpu.name.includes('ECDSA')) {
+              return;
+            }
+            
             const key = `${nodeData.ip}-${gpu.index}-${gpu.uuid}`;
             
             if (!gpuMap.has(key)) {
@@ -309,12 +360,14 @@ export const ServerUtilization: React.FC = () => {
     // Calculate node summaries
     const summaries: NodeSummary[] = Array.from(nodeMap.values()).map(nodeData => {
       const totalDataPoints = nodeData.gpuUtils.length;
-      const gpuCount = nodeData.gpuCount;
+      // Count actual valid GPUs for this node from gpuMap (not from JSON gpu_count)
+      const actualGpuCount = Array.from(gpuMap.values())
+        .filter(gpu => gpu.node === nodeData.node).length;
       
       return {
         node: nodeData.node,
         status: nodeData.status,
-        gpuCount: gpuCount,
+        gpuCount: actualGpuCount,
         avgGpuUtil: totalDataPoints > 0
           ? nodeData.gpuUtils.reduce((sum, val) => sum + val, 0) / totalDataPoints
           : 0,
@@ -327,7 +380,7 @@ export const ServerUtilization: React.FC = () => {
         avgPowerDraw: totalDataPoints > 0
           ? nodeData.powerDraws.reduce((sum, val) => sum + val, 0) / totalDataPoints
           : 0,
-        totalGpus: gpuCount
+        totalGpus: actualGpuCount
       };
     });
 
@@ -615,7 +668,15 @@ export const ServerUtilization: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {gpuAverages
-              .filter(gpu => gpu.node === selectedNode)
+              .filter(gpu => 
+                gpu.node === selectedNode &&
+                gpu.name &&
+                !gpu.name.includes('Warning') &&
+                !gpu.name.includes('Permanently added') &&
+                !gpu.name.includes('ECDSA') &&
+                gpu.index &&
+                gpu.uuid
+              )
               .map((gpu) => (
                 <div
                   key={`${gpu.node}-${gpu.index}-${gpu.uuid}`}
